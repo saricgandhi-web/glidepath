@@ -3,12 +3,12 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "open-wealth-planner"
+name = "glidepath"
 version = "1.0.0"
 description = "A free, transparent Monte Carlo retirement planning engine."
 readme = "README.md"
 license = { text = "MIT" }
-authors = [{ name = "saricgandhi-web" }]
+authors = [{ name = "The Glidepath authors" }]
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24"]
 keywords = ["retirement", "monte-carlo", "financial-planning", "wealth-management", "social-security"]
@@ -24,11 +24,11 @@ analysis = ["matplotlib>=3.7"]
 dev = ["pytest>=8", "ruff>=0.6", "matplotlib>=3.7"]
 
 [project.scripts]
-open-wealth-planner = "planner.__main__:main"
+glidepath = "planner.__main__:main"
 
 [project.urls]
-Homepage = "https://saricgandhi-web.github.io/open-wealth-planner-/"
-Source = "https://github.com/saricgandhi-web/open-wealth-planner-"
+Homepage = "https://saricgandhi-web.github.io/glidepath/"
+Source = "https://github.com/saricgandhi-web/glidepath"
 
 [tool.setuptools]
 packages = ["planner"]

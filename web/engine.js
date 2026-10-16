@@ -1,4 +1,4 @@
-// Open Wealth Planner: JavaScript port of the Python engine (planner/).
+// Glidepath: JavaScript port of the Python engine (planner/).
 // Same model, same assumptions file, verified against Python output by
 // tests/js/parity.test.mjs. Runs entirely in the browser; nothing leaves the page.
 

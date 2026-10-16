@@ -128,7 +128,7 @@ def format_plan(plan: dict) -> str:
     r: SimulationResult = plan["result"]
     s = r.summary()
     lines = [
-        "OPEN WEALTH PLANNER  |  plan summary (today's dollars)",
+        "GLIDEPATH  |  plan summary (today's dollars)",
         "=" * 58,
         f"Probability of success      {s['success_probability']:.0%}   (target {plan['target']:.0%})",
         f"Median at retirement        {_money(s['median_at_retirement'])}",

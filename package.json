@@ -1,8 +1,8 @@
 {
-  "name": "open-wealth-planner",
+  "name": "glidepath",
   "version": "1.0.0",
   "private": true,
-  "description": "Browser engine for the Open Wealth Planner. No runtime dependencies.",
+  "description": "Browser engine for Glidepath. No runtime dependencies.",
   "type": "module",
   "license": "MIT",
   "scripts": {

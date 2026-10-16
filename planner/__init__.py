@@ -1,4 +1,4 @@
-"""Open Wealth Planner: a free, transparent goals-based retirement planning engine."""
+"""Glidepath: a free, transparent goals-based retirement planning engine."""
 
 from .fees import compare_fee_profiles, share_of_wealth_lost
 from .model import PlanInputs, SimulationResult, simulate
