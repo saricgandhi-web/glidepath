@@ -5,10 +5,10 @@ Describe your situation in one sentence and the planner tests it against thousan
 markets, then solves for the savings rate, spending level or retirement age that gets you to 85%
 confidence.
 
-**[Try the live planner](https://saricgandhi-web.github.io/open-wealth-planner/)** ·
+**[Try the live planner](https://saricgandhi-web.github.io/open-wealth-planner-/)** ·
 [Case study](docs/CASE_STUDY.md) · [Methodology](docs/METHODOLOGY.md)
 
-[![CI](https://github.com/saricgandhi-web/open-wealth-planner/actions/workflows/ci.yml/badge.svg)](https://github.com/saricgandhi-web/open-wealth-planner/actions/workflows/ci.yml)
+[![CI](https://github.com/saricgandhi-web/open-wealth-planner-/actions/workflows/ci.yml/badge.svg)](https://github.com/saricgandhi-web/open-wealth-planner-/actions/workflows/ci.yml)
 ![License: MIT](https://img.shields.io/badge/license-MIT-1f5c4a)
 
 ![The planner](docs/images/app.png)
@@ -80,8 +80,8 @@ with a source for every number. The Python engine and the web app both read it.
 Requires Python 3.10+ and NumPy.
 
 ```bash
-git clone https://github.com/saricgandhi-web/open-wealth-planner.git
-cd open-wealth-planner
+git clone https://github.com/saricgandhi-web/open-wealth-planner-.git
+cd open-wealth-planner-
 pip install -r requirements.txt
 
 # A plan from the command line
