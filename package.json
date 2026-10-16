@@ -1,0 +1,11 @@
+{
+  "name": "open-wealth-planner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser engine for the Open Wealth Planner. No runtime dependencies.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test tests/js/parity.test.mjs"
+  }
+}

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open Wealth Planner</title>
+<meta name="description" content="A free, open-source Monte Carlo retirement planner. Runs entirely in your browser.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f5c4a'/%3E%3Cpath d='M6 24 C12 22 16 14 26 8' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>/*STYLES*/</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="wordmark" href="#top">Open Wealth Planner</a>
+    <nav class="site-nav" aria-label="Page">
+      <a href="#method">Method and sources</a>
+      <a href="https://github.com/saricgandhi-web/open-wealth-planner">Code on GitHub</a>
+      <button class="button quiet" type="button" id="print-plan">Print your plan</button>
+    </nav>
+  </div>
+</header>
+
+<main id="top" class="wrap">
+  <section class="hero" aria-labelledby="hero-title">
+    <p class="print-only" id="print-date"></p>
+    <h1 id="hero-title">Will your money last?</h1>
+    <p class="lede">A free version of the planning software financial advisors use. Describe your situation and the planner tests it against 5,000 simulated markets.</p>
+
+    <form class="story" id="story" novalidate onsubmit="return false">
+      I'm <input id="f-age" aria-label="Current age" inputmode="numeric" autocomplete="off"> years old
+      with <input id="f-savings" aria-label="Invested savings in dollars" inputmode="decimal" autocomplete="off"> invested.
+      I earn <input id="f-income" aria-label="Annual pre-tax income in dollars" inputmode="decimal" autocomplete="off"> a year
+      and save <input id="f-rate" aria-label="Savings rate as a percent of income, including employer match" inputmode="decimal" autocomplete="off"> of it,
+      counting any employer match. I want to retire at <input id="f-retire" aria-label="Retirement age" inputmode="numeric" autocomplete="off">
+      and spend <input id="f-spend" aria-label="Retirement spending per year in today's dollars" inputmode="decimal" autocomplete="off"> a year
+      in today's dollars, through age <input id="f-planto" aria-label="Plan through age" inputmode="numeric" autocomplete="off">.
+    </form>
+    <p class="story-note" id="story-note" aria-live="polite"></p>
+    <p class="form-error" id="form-error" role="alert"></p>
+
+    <div class="answer" aria-live="polite">
+      <div class="answer-line">
+        <span class="answer-figure" id="answer-figure">—</span>
+        <p class="answer-text" id="answer-text">Running the simulation.</p>
+      </div>
+      <div class="status" id="status"></div>
+      <div class="meter" aria-hidden="true">
+        <div class="meter-track"><div class="meter-fill" id="meter-fill"></div></div>
+        <div class="meter-target" id="meter-target"><span>Target 85%</span></div>
+        <div class="meter-scale"><span>0%</span><span>50%</span><span>100%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="chart-title">
+    <h2 id="chart-title">Your portfolio, in today's dollars</h2>
+    <p class="section-sub" id="chart-sub">Each band shows the range of outcomes across simulated markets. Hover or use the arrow keys to read any age.</p>
+    <ul class="legend">
+      <li><span class="key-band" style="background: var(--green-wash-2)"></span>Middle 50% of outcomes</li>
+      <li><span class="key-band" style="background: var(--green-wash)"></span>80% of outcomes</li>
+      <li><span class="key-line"></span>Median</li>
+      <li><span class="key-rule"></span>Retirement</li>
+    </ul>
+    <div class="chart" id="fan-chart" tabindex="0" role="img" aria-label="Fan chart of projected portfolio value by age"></div>
+    <details class="table-view">
+      <summary>Show the numbers</summary>
+      <div class="table-scroll"><table class="data-table" id="fan-table"></table></div>
+    </details>
+  </section>
+
+  <section class="block">
+    <div class="two-col">
+      <div class="col">
+        <h2 id="levers-title">Three ways to reach 85% confidence</h2>
+        <p class="section-sub">Each one on its own closes the gap. Apply one to see the new plan.</p>
+        <ul class="levers" id="levers" aria-labelledby="levers-title"></ul>
+      </div>
+      <div class="col">
+        <h2>What fees cost you</h2>
+        <p class="section-sub">Median portfolio at retirement for this plan under three ways of investing.</p>
+        <div class="fees" id="fees"></div>
+        <p class="fee-note" id="fee-note"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="plan-title">
+    <h2 id="plan-title">Your action plan</h2>
+    <p class="section-sub">Ordered by how much each step changes the outcome.</p>
+    <ol class="plan-list" id="plan-list"></ol>
+  </section>
+
+  <section class="block" id="settings" aria-labelledby="settings-title">
+    <h2 id="settings-title">Fine-tune the assumptions</h2>
+    <p class="section-sub">The defaults follow published 2026 research. Change anything that doesn't fit you.</p>
+    <div class="settings">
+      <fieldset>
+        <legend class="group">Social Security</legend>
+        <label class="field">Benefit in today's dollars per year
+          <input type="text" id="s-ss" inputmode="decimal" autocomplete="off">
+          <span class="hint" id="s-ss-hint"></span>
+        </label>
+        <label class="field">Claim at age
+          <select id="s-claim"></select>
+        </label>
+        <label class="check"><input type="checkbox" id="s-haircut">
+          <span>Stress test: benefits cut to 83% from 2034, when the trust funds are projected to run out</span></label>
+      </fieldset>
+
+      <fieldset>
+        <legend class="group">Investments</legend>
+        <label class="field">Stocks today <output id="o-eq-now"></output>
+          <input type="range" id="s-eq-now" min="0" max="100" step="5">
+        </label>
+        <label class="field">Stocks at retirement <output id="o-eq-ret"></output>
+          <input type="range" id="s-eq-ret" min="0" max="100" step="5">
+        </label>
+        <div class="field">Market outlook
+          <div class="segmented" id="s-market" role="group" aria-label="Market outlook"></div>
+          <span class="hint" id="s-market-hint"></span>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend class="group">Costs</legend>
+        <div class="segmented" id="s-fee-presets" role="group" aria-label="Fee presets"></div>
+        <label class="field">Advisory fee, % of assets per year
+          <input type="text" id="s-adv" inputmode="decimal" autocomplete="off">
+        </label>
+        <label class="field">Fund expense ratio, %
+          <input type="text" id="s-fund" inputmode="decimal" autocomplete="off">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend class="group">Income</legend>
+        <label class="field">Raises above inflation, % per year
+          <input type="text" id="s-growth" inputmode="decimal" autocomplete="off">
+        </label>
+        <label class="field">Default spending goal, % of final salary
+          <input type="text" id="s-replace" inputmode="decimal" autocomplete="off">
+          <span class="hint">Used until you type your own spending goal.</span>
+        </label>
+      </fieldset>
+    </div>
+  </section>
+
+  <section class="block" id="method" aria-labelledby="method-title">
+    <h2 id="method-title">Method and sources</h2>
+    <div class="method">
+      <div>
+        <h3>How the simulation works</h3>
+        <p>Every year, stock and bond returns are drawn from correlated lognormal distributions calibrated to institutional capital market assumptions. The portfolio shifts from stocks toward bonds as you approach retirement, fees come out of each year's return, and everything is converted to today's dollars.</p>
+        <p>While you work, you contribute your savings rate. In retirement, the portfolio pays whatever spending Social Security doesn't cover. A scenario succeeds if every year of spending is paid in full through your plan-to age.</p>
+        <p>The three levers are solved by bisection on the same set of simulated markets, so applying one lands exactly on the target.</p>
+        <h3>Privacy</h3>
+        <p>Everything runs in your browser. Nothing you type is sent anywhere or stored, and the page makes no network requests.</p>
+        <h3>Limits</h3>
+        <p>Taxes, pensions, home equity and one-off goals are not modeled. Social Security is estimated from your income with the SSA formula; your own statement at ssa.gov is more accurate. This is an educational tool, not investment advice.</p>
+      </div>
+      <div class="table-scroll">
+        <table class="sources" id="sources">
+          <thead><tr><th scope="col">Assumption</th><th scope="col">Value</th><th scope="col">Source</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>Open Wealth Planner is open source under the MIT license. Built by <a href="https://github.com/saricgandhi-web">@saricgandhi-web</a>.</p>
+    <p>For education only. Not investment, tax or legal advice. Past and projected returns do not guarantee future results.</p>
+  </div>
+</footer>
+
+<script type="application/json" id="assumptions">/*ASSUMPTIONS*/</script>
+<script type="module">/*SCRIPTS*/</script>
+</body>
+</html>
