@@ -15,8 +15,8 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.ticker import FuncFormatter, PercentFormatter  # noqa: E402
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter, PercentFormatter
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
