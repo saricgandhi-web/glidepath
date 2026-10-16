@@ -68,7 +68,7 @@ class PlanInputs:
         if self.n_sims < 1:
             raise ValueError("n_sims must be positive.")
 
-    def with_(self, **changes) -> "PlanInputs":
+    def with_(self, **changes) -> PlanInputs:
         """Return a copy with some fields changed (handy for what-if analysis)."""
         return replace(self, **changes)
 
