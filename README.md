@@ -35,10 +35,28 @@ run out of money, and what should I change? That computation should be free, tra
 |---|---|
 | **Planning engine** (Python, NumPy) | Vectorized Monte Carlo simulation of a client's full life cycle: contributions, a stock/bond glide path, fees, inflation, Social Security and retirement withdrawals. |
 | **Goal-seek solvers** | Bisection on common random numbers finds the exact savings rate, sustainable spending and earliest retirement age for a target probability of success. |
+| **Spending rules** | Fixed spending, Guyton-Klinger style guardrails, or a percent of the portfolio, with metrics for lean years and deep cuts, not just the chance of running out. |
 | **Social Security estimator** | The SSA's 90/32/15 PIA formula with bend points, taxable maximum, 35-year averaging and early/delayed claiming adjustments, plus a trust-fund depletion stress test. |
-| **Interactive web app** (vanilla JS) | A browser port of the engine with a fan chart, live levers, fee comparison and a printable client report. No frameworks, no tracking, no network requests. |
+| **Interactive web app** | A browser port of the engine with seven tabs (below), animated with GSAP, Lenis smooth scrolling and React Bits components. One self-contained file: no tracking, no network requests. |
 | **Case study** | A consulting-style analysis of three hypothetical clients with four quantified findings. Every number regenerates from one script. |
-| **Verification** | 30 Python unit tests against closed-form results, plus parity tests proving the JavaScript engine reproduces the Python engine. CI runs on every push. |
+| **Verification** | 41 Python unit tests against closed-form results, plus 12 parity tests proving the JavaScript engine reproduces the Python engine. CI runs on every push. |
+
+### The web app
+
+Type your situation into one sentence and the answer updates as you go. The tabs then take it apart
+the way an advisor would in a planning meeting:
+
+| Tab | What it answers |
+|---|---|
+| **Plan** | Fan chart of outcomes by age, the three levers that reach 85% confidence (one click to apply), what fees cost you, and a printable action plan. |
+| **Stress test** | Your chance of success under seven scenarios: a crash the year you retire, weaker markets, a Social Security cut, living to 100, losing your job early, higher fees, and all market risks at once. |
+| **Spending rules** | Fixed spending vs. guardrails vs. percent of portfolio, side by side, with the range of income each one produces year by year. |
+| **Social Security** | Your chance of success for every claiming age from 62 to 70, with or without the 2034 benefit cut. |
+| **Compare** | Build a Plan B (retire later, save more, spend less, change the stock mix, fees or rule) and see every metric and the median path next to Plan A. |
+| **Assumptions** | The market outlook, fees, Social Security and glide path behind the plan, all editable, with a source for each number. |
+| **About** | The problem, the case-study findings, how it's built and the privacy guarantees. |
+
+Links are shareable: `#stress`, `#compare` and the other tab names open that tab directly.
 
 ## Key findings
 
@@ -91,6 +109,9 @@ python -m planner --age 30 --income 95000 --savings 40000 --rate 0.12
 
 # Same client, paying a 1% advisor and stress-testing Social Security
 python -m planner --age 30 --income 95000 --savings 40000 --rate 0.12 --fee 0.01 --fund-fee 0.0065 --haircut
+
+# Guardrails spending, with a market crash in the first two years of retirement
+python -m planner --age 30 --income 95000 --savings 40000 --rate 0.12 --rule guardrails --crash
 ```
 
 Use it as a library:
@@ -105,7 +126,7 @@ print(format_plan(build_plan(client)))
 Run the web app locally:
 
 ```bash
-python scripts/build_site.py          # bundles web/ into _site/index.html
+python scripts/build_site.py          # bundles web/, fonts and libraries into one file, _site/index.html
 python -m http.server -d _site 8000   # open http://localhost:8000
 ```
 
@@ -128,7 +149,11 @@ planner/                 Python planning engine
   fees.py                fee drag analysis
   report.py              prioritized recommendations
   data/assumptions.json  every assumption, with sources
-web/                     browser app (engine.js mirrors the Python engine)
+web/                     browser app
+  engine.js              JavaScript port of the engine, verified against Python
+  app.js                 interface: sentence form, tabs, charts, animation
+  vendor/                GSAP, Lenis and React Bits ports (see THIRD_PARTY_NOTICES.md)
+  fonts/                 Geist and a renamed subset of Source Serif 4 (Latin only)
 analysis/case_study.py   generates the case study, charts and results
 tests/                   unit tests and Python/JavaScript parity tests
 scripts/                 site bundler and parity fixture generator
@@ -138,14 +163,24 @@ scripts/                 site bundler and parity fixture generator
 ## Privacy and security
 
 - The web app runs entirely in the browser. Nothing a visitor types is sent anywhere or stored.
-- The page ships with a strict Content Security Policy that blocks all network requests.
+- The page ships with a strict Content Security Policy that blocks all network requests. Fonts and
+  libraries are bundled into the page, so nothing loads from a CDN.
 - The repository contains no API keys, credentials or personal data, and needs none to run.
 - GitHub Actions are pinned to exact commit SHAs, and Dependabot keeps them up to date.
+
+## Built with
+
+- **Engine:** Python and NumPy; a dependency-free JavaScript port for the browser
+- **Animation:** [GSAP](https://gsap.com) with ScrollTrigger and SplitText, [Lenis](https://github.com/darkroomengineering/lenis) smooth scrolling
+- **Components:** Waves background, SplitText, ScrollReveal and CountUp from [React Bits](https://reactbits.dev), ported to plain JavaScript
+- **Type:** [Geist](https://github.com/vercel/geist-font) and [Source Serif 4](https://github.com/adobe-fonts/source-serif) (subset and renamed Glidepath Serif, as its license requires)
+- **Quality:** GitHub Actions (Ruff, unit tests, parity tests, build), Dependabot, GitHub Pages
+
+Licenses for these are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Roadmap
 
 - Tax-aware modeling: Roth vs. traditional contributions and asset location
-- Flexible spending rules (guardrails) in retirement
 - Historical bootstrap returns as an alternative to parametric assumptions
 - Couples, pensions and one-off goals such as a home purchase
 
@@ -156,4 +191,5 @@ do not guarantee future results.
 
 ## License
 
-[MIT](LICENSE).
+Glidepath's own code is [MIT](LICENSE). Bundled third-party code keeps its own license; see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

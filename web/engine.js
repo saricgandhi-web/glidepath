@@ -21,10 +21,17 @@ export const DEFAULTS = Object.freeze({
   fund_fee: 0.0005,
   market: "jpm_2026",
   correlation: null,
+  spending_rule: "fixed",   // "fixed" | "guardrails" | "percent"
+  retirement_shock: [],     // real returns forced onto the first retirement years
   n_sims: 5000,
   seed: 2026,
   start_year: 2026,
 });
+
+export const SPENDING_RULES = ["fixed", "guardrails", "percent"];
+// Guardrails (after Guyton & Klinger, 2006) — same constants as planner/model.py.
+export const GUARDRAIL = { upper: 1.2, lower: 0.8, cut: 0.9, raise: 1.1, min: 0.5, max: 1.5 };
+export const SPENDING_FLOOR = 0.8;
 
 export function makeInputs(overrides = {}) {
   const inp = { ...DEFAULTS, ...overrides };
@@ -37,6 +44,9 @@ export function makeInputs(overrides = {}) {
   for (const k of ["equity_now", "equity_at_retirement", "savings_rate", "replacement_ratio"]) {
     if (!(inp[k] >= 0 && inp[k] <= 1)) throw new RangeError(`${k} must be between 0 and 1.`);
   }
+  if (!SPENDING_RULES.includes(inp.spending_rule)) throw new RangeError(`spending_rule must be one of ${SPENDING_RULES}.`);
+  inp.retirement_shock = Array.from(inp.retirement_shock || []);
+  if (inp.retirement_shock.some((r) => !(r > -1 && r < 10))) throw new RangeError("retirement_shock returns must be greater than -100%.");
   return inp;
 }
 
@@ -180,8 +190,16 @@ export function simulateReturns(inp, A) {
 // ---------- simulation ----------
 
 export function simulate(inp, A, returns = null) {
-  const R = returns ?? simulateReturns(inp, A);
-  const n = R.length, T = years(inp);
+  let R = returns ?? simulateReturns(inp, A);
+  const n = R.length, T = years(inp), W = workingYears(inp);
+  const shock = inp.retirement_shock || [];
+  if (shock.length) {
+    R = R.map((row) => {
+      const copy = Float64Array.from(row);
+      shock.forEach((r, i) => { if (W + i < T) copy[W + i] = r; });
+      return copy;
+    });
+  }
   const income = incomePath(inp);
   const contributions = income.map((x) => inp.savings_rate * x);
   const spend = retirementSpending(inp);
@@ -189,24 +207,45 @@ export function simulate(inp, A, returns = null) {
   const need = new Float64Array(T);
   for (let t = 0; t < T; t++) need[t] = inp.current_age + t >= inp.retirement_age ? Math.max(spend - ss[t], 0) : 0;
   const totalNeed = need.reduce((s, x) => s + x, 0);
+  const rule = inp.spending_rule || "fixed";
+  const G = GUARDRAIL;
 
   // balances[t] holds the start-of-year balance of every path at year t.
   const balances = Array.from({ length: T + 1 }, () => new Float64Array(n));
+  const spendingPaths = new Array(n);
   const success = new Uint8Array(n);
   const depletionAge = new Float64Array(n).fill(NaN);
   const funded = new Float64Array(n);
 
   for (let i = 0; i < n; i++) {
-    let bal = inp.current_savings, alive = true, paid = 0;
+    let bal = inp.current_savings, alive = true, paid = 0, mult = 1, startBal = 1;
+    const sp = new Float64Array(T);
     balances[0][i] = bal;
     const r = R[i];
     for (let t = 0; t < T; t++) {
       const pre = bal + contributions[t];
-      paid += Math.min(Math.max(pre, 0), need[t]);
-      if (alive && pre < need[t] - 1e-9) { alive = false; depletionAge[i] = inp.current_age + t; }
-      bal = Math.max(pre - need[t], 0) * (1 + r[t]);
+      if (t === W) startBal = Math.max(pre, 1e-9);
+      const retired = t >= W;
+      let planned = 0;
+      if (retired) {
+        if (rule === "percent") planned = (need[t] * Math.max(pre, 0)) / startBal;
+        else if (rule === "guardrails") {
+          if (t > W) {
+            const ratio = (mult * startBal) / Math.max(pre, 1e-9);
+            if (ratio > G.upper) mult = Math.max(mult * G.cut, G.min);
+            else if (ratio < G.lower) mult = Math.min(mult * G.raise, G.max);
+          }
+          planned = need[t] * mult;
+        } else planned = need[t];
+      }
+      const pay = Math.min(Math.max(pre, 0), planned);
+      paid += pay;
+      if (retired) sp[t] = pay + ss[t];
+      if (alive && pre < planned - 1e-9) { alive = false; depletionAge[i] = inp.current_age + t; }
+      bal = Math.max(pre - planned, 0) * (1 + r[t]);
       balances[t + 1][i] = bal;
     }
+    spendingPaths[i] = sp;
     success[i] = alive ? 1 : 0;
     funded[i] = totalNeed > 0 ? paid / totalNeed : 1;
   }
@@ -215,11 +254,37 @@ export function simulate(inp, A, returns = null) {
   for (let i = 0; i < n; i++) wins += success[i];
   return {
     inputs: inp,
-    balances, success, depletionAge, funded,
+    balances, success, depletionAge, funded, spendingPaths, annualReturns: R,
     contributions, spending: spend, socialSecurity: ss, withdrawalsNeeded: need,
     equityWeights: glidePath(inp),
     successProbability: wins / n,
   };
+}
+
+// Spending statistics over retirement years (mirror SimulationResult in Python).
+function retiredSpending(result) {
+  const W = workingYears(result.inputs);
+  return result.spendingPaths.map((row) => row.subarray(W));
+}
+export function medianSpending(result) {
+  return percentile(retiredSpending(result).map((row) => row.reduce((s, x) => s + x, 0) / row.length), 50);
+}
+export function lowSpending(result) {
+  return percentile(retiredSpending(result).map((row) => Math.min(...row)), 10);
+}
+export function shortfallProbability(result) {
+  const floor = SPENDING_FLOOR * result.spending - 1e-6;
+  const rows = retiredSpending(result);
+  return rows.filter((row) => Math.min(...row) < floor).length / rows.length;
+}
+export function spendingPercentiles(result, pcts = [10, 25, 50, 75, 90]) {
+  const rows = retiredSpending(result);
+  const len = rows[0]?.length ?? 0;
+  const out = {};
+  for (const p of pcts) {
+    out[p] = Array.from({ length: len }, (_, t) => percentile(rows.map((row) => row[t]), p));
+  }
+  return out;
 }
 
 // numpy.percentile default ("linear") so both engines agree exactly.

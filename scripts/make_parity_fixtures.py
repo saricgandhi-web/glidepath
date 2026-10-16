@@ -40,6 +40,10 @@ def exact_case(name: str, inputs: PlanInputs, seed: int) -> dict:
             "social_security": res.social_security.round(6).tolist(),
             "spending": round(res.spending, 6),
             "equity_weights": res.equity_weights.round(10).tolist(),
+            "spending_paths_by_sim": res.spending_paths.round(6).tolist(),
+            "median_spending": res.median_spending,
+            "low_spending": res.low_spending,
+            "shortfall_probability": res.shortfall_probability,
         },
     }
 
@@ -66,6 +70,14 @@ def main() -> None:
         exact_case("runs out of money",
                    PlanInputs(current_age=60, retirement_age=61, current_savings=200_000, annual_income=90_000,
                               savings_rate=0.0, retirement_spending=70_000, social_security=20_000), 3),
+        exact_case("guardrails with a crash at retirement",
+                   PlanInputs(current_age=58, retirement_age=63, current_savings=900_000, annual_income=150_000,
+                              savings_rate=0.12, retirement_spending=85_000, spending_rule="guardrails",
+                              retirement_shock=(-0.25, -0.10)), 4),
+        exact_case("percent-of-portfolio spending",
+                   PlanInputs(current_age=50, retirement_age=60, current_savings=600_000, annual_income=130_000,
+                              savings_rate=0.15, retirement_spending=80_000, spending_rule="percent",
+                              ss_claim_age=70), 5),
     ]
     ss = [
         {"inputs": asdict(p), "expected": estimate_annual_benefit(p.current_age, p.retirement_age, p.annual_income,
@@ -81,6 +93,9 @@ def main() -> None:
         stochastic_case("mid-career, conservative markets",
                         PlanInputs(current_age=40, current_savings=180_000, annual_income=140_000, savings_rate=0.15,
                                    market="vanguard_2026", n_sims=20_000)),
+        stochastic_case("guardrails spending",
+                        PlanInputs(current_age=45, current_savings=300_000, annual_income=140_000, savings_rate=0.12,
+                                   spending_rule="guardrails", n_sims=20_000)),
         stochastic_case("traditional advisor fees",
                         PlanInputs(current_age=35, current_savings=90_000, annual_income=120_000, savings_rate=0.12,
                                    advisory_fee=0.01, fund_fee=0.0065, n_sims=20_000)),

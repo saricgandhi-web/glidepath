@@ -5,13 +5,15 @@
     python scripts/build_site.py --no-csp     # omit the Content-Security-Policy meta tag
     python scripts/build_site.py --artifact   # page-body variant for hosts that supply their own <head>
 
-The page inlines its CSS, JavaScript and the shared assumptions file, so it has
-no dependencies and makes no network requests.
+The page inlines its CSS, fonts, JavaScript (including the vendored GSAP, Lenis and
+React Bits ports in web/vendor) and the shared data files, so it makes no network
+requests.
 """
 
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import re
 from pathlib import Path
@@ -19,6 +21,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 WEB = ROOT / "web"
 ASSUMPTIONS = ROOT / "planner" / "data" / "assumptions.json"
+CASE_STUDY = ROOT / "docs" / "results.json"
+VENDOR = ["gsap.min.js", "ScrollTrigger.min.js", "SplitText.min.js", "lenis.js", "rb-waves.js", "rb-text.js"]
+FONT_URL = re.compile(r'url\("fonts/([^"]+\.woff)"\)')
+
+
+def inline_fonts(css: str) -> str:
+    def data_uri(m: re.Match) -> str:
+        raw = (WEB / "fonts" / m.group(1)).read_bytes()
+        return 'url("data:font/woff;base64,' + base64.b64encode(raw).decode() + '")'
+    return FONT_URL.sub(data_uri, css)
+
+
+def script_safe(js: str) -> str:
+    """Make text safe inside an inline <script>: only a literal </script can end it early."""
+    return re.sub(r"</(script)", r"<\\/\1", js, flags=re.IGNORECASE)
+
+
 IMPORT_ENGINE = re.compile(r"^import\s*\{[\s\S]*?\}\s*from\s*[\"']\./engine\.js[\"'];\s*", re.MULTILINE)
 
 
@@ -36,7 +55,7 @@ def to_fragment(html: str) -> str:
 
 def build(out: Path, csp: bool = True, fragment: bool = False) -> Path:
     html = (WEB / "index.html").read_text(encoding="utf-8")
-    css = (WEB / "styles.css").read_text(encoding="utf-8")
+    css = inline_fonts((WEB / "styles.css").read_text(encoding="utf-8"))
     engine = (WEB / "engine.js").read_text(encoding="utf-8")
     app = (WEB / "app.js").read_text(encoding="utf-8")
 
@@ -46,11 +65,18 @@ def build(out: Path, csp: bool = True, fragment: bool = False) -> Path:
     # Engine at module top level (it uses `export`); app in its own block scope.
     script = f"{engine}\n\n{{\n{app}\n}}\n"
     data = json.dumps(json.loads(ASSUMPTIONS.read_text(encoding="utf-8")), separators=(",", ":"))
+    case = json.loads(CASE_STUDY.read_text(encoding="utf-8")) if CASE_STUDY.exists() else {}
+    case_json = json.dumps({k: case[k] for k in ("cost_of_waiting", "fees", "outlook", "social_security") if k in case},
+                           separators=(",", ":"))
+    vendor = "\n;\n".join((WEB / "vendor" / name).read_text(encoding="utf-8") for name in VENDOR)
 
-    for needle, chunk in (("/*STYLES*/", css), ("/*ASSUMPTIONS*/", data), ("/*SCRIPTS*/", script)):
+    chunks = (("/*STYLES*/", css), ("/*ASSUMPTIONS*/", data.replace("</", "<\\/")),
+              ("/*CASESTUDY*/", case_json.replace("</", "<\\/")), ("/*VENDOR*/", script_safe(vendor)),
+              ("/*SCRIPTS*/", script_safe(script)))
+    for needle, chunk in chunks:
         if needle not in html:
             raise SystemExit(f"build_site: placeholder {needle} missing from web/index.html")
-        html = html.replace(needle, chunk.replace("</", "<\\/") if needle != "/*STYLES*/" else chunk)
+        html = html.replace(needle, chunk)
 
     if not csp or fragment:
         html = re.sub(r'<meta http-equiv="Content-Security-Policy"[^>]*>\n', "", html)

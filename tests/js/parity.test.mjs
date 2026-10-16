@@ -5,8 +5,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 import {
-  atRetirement, claimingAdjustment, estimateAnnualBenefit, makeInputs, maxSustainableSpending,
-  requiredSavingsRate, simulate,
+  atRetirement, claimingAdjustment, estimateAnnualBenefit, lowSpending, makeInputs, maxSustainableSpending,
+  medianSpending, requiredSavingsRate, shortfallProbability, simulate,
 } from "../../web/engine.js";
 
 const A = JSON.parse(readFileSync(new URL("../../planner/data/assumptions.json", import.meta.url)));
@@ -30,6 +30,11 @@ for (const c of F.exact) {
     e.depletion_age.forEach((x, i) =>
       x === null ? assert.ok(Number.isNaN(res.depletionAge[i])) : assert.equal(res.depletionAge[i], x));
     e.funded_ratio.forEach((x, i) => close(res.funded[i], x, 1e-9, `funded ratio ${i}`));
+    e.spending_paths_by_sim.forEach((path, i) =>
+      path.forEach((x, t) => close(res.spendingPaths[i][t], x, Math.max(1e-6, Math.abs(x) * 1e-9), `spending sim ${i} year ${t}`)));
+    close(medianSpending(res), e.median_spending, 1e-6, "median spending");
+    close(lowSpending(res), e.low_spending, 1e-6, "low spending");
+    close(shortfallProbability(res), e.shortfall_probability, 1e-12, "shortfall probability");
   });
 }
 

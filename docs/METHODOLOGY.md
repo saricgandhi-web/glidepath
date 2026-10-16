@@ -54,7 +54,31 @@ Volatility is 16.4% for stocks and 6.4% for bonds (Vanguard Capital Markets Mode
 - **Contributions** are `savings_rate × income`, including any employer match.
 - **Retirement spending** is either entered directly or defaults to `replacement_ratio` (70%) of income
   in the final working year.
-- **Portfolio withdrawals** are `max(spending − Social Security, 0)` in each retirement year.
+- **Portfolio withdrawals** are `max(spending − Social Security, 0)` in each retirement year, adjusted
+  by the spending rule below.
+
+### Spending rules
+
+Real retirees rarely spend the same amount no matter what markets do. The engine supports three rules
+for the portfolio withdrawal `W` in each retirement year (Social Security is paid on top):
+
+| Rule | Withdrawal in year *t* | Trade-off |
+|---|---|---|
+| **Fixed** (default) | `W = need` every year | Steady income; the whole risk is running out. |
+| **Guardrails** | `W = need × m`, where `m` starts at 1 | Small, rare pay cuts in exchange for a much lower chance of running out. |
+| **Percent of portfolio** | `W = need × balance / balance at retirement` | Can never run out, but income moves with every market swing. |
+
+The guardrails rule is a simplified version of Guyton and Klinger (2006). Each year after the first,
+the engine compares the current withdrawal rate with the rate at retirement. If it is more than 120% of
+the starting rate, spending is cut 10%; if it is below 80%, spending is raised 10%. The multiplier `m`
+stays between 50% and 150% of the goal.
+
+Because flexible rules trade running out for spending cuts, success alone no longer tells the whole
+story. The engine also reports, across paths:
+
+- **median spending**, the median of each path's average retirement spending;
+- **lean-year spending**, the 10th percentile of each path's lowest year of spending;
+- **chance of a deep cut**, the share of paths where spending falls below 80% of the goal in any year.
 
 ## 4. Social Security
 
@@ -100,7 +124,24 @@ The savings and spending solvers reuse one matrix of simulated returns (common r
 draws held fixed, success can only rise as savings rise or spending falls, so bisection converges to a
 clean boundary, and applying the solved value in the app lands exactly on the target.
 
-## 7. Verification
+## 7. Stress tests
+
+The web app reruns the plan under seven scenarios with the same random draws, so each change in the
+probability of success comes from the scenario alone:
+
+| Scenario | Change to the plan |
+|---|---|
+| A crash right after you retire | Real portfolio returns of −25% and −10% in the first two retirement years, overriding the simulated returns on every path (sequence-of-returns risk) |
+| Weaker markets for good | Vanguard's cautious capital market assumptions instead of J.P. Morgan's |
+| Social Security is cut in 2034 | Benefits multiplied by 83% from 2034 |
+| You live to 100 | Plan-to age extended to 100 (or five years past the plan, whichever is later) |
+| You stop working 3 years early | Retirement age three years earlier, with the spending goal held at its original level |
+| You pay 1% more in fees | Advisory fee raised by one percentage point |
+| All three market risks at once | The crash, the cautious outlook and the benefit cut together |
+
+The Python engine supports the crash scenario through `retirement_shock` (CLI flag `--crash`).
+
+## 8. Verification
 
 - **Closed-form checks.** With constant returns the accumulation phase must equal the annuity-due formula;
   a portfolio with exactly enough money must end at zero; running out must be detected in the right year.
@@ -108,12 +149,15 @@ clean boundary, and applying the solved value in the app lands exactly on the ta
 - **Property checks.** More saving never lowers success; higher fees lower returns one-for-one; the
   conservative outlook produces less wealth; the same seed reproduces the same answer.
 - **Solver checks.** Each solved value meets the target and a slightly worse value does not.
+- **Spending-rule checks.** The percent rule never runs out and tracks the portfolio; guardrails cut
+  spending and last longer in bad markets, raise it in good markets up to the cap, and pay the goal in
+  the first year; a retirement shock overrides exactly the right years without altering the caller's data.
 - **Cross-language parity.** `scripts/make_parity_fixtures.py` saves Python outputs for fixed return
-  matrices. The JavaScript engine must reproduce every balance, depletion age and funded ratio to within
-  floating-point tolerance, and its own random simulations must agree with Python's to within 2 points.
+  matrices under all three spending rules and with a retirement shock. The JavaScript engine must
+  reproduce every balance, spending path, depletion age and funded ratio to within floating-point tolerance, and its own random simulations must agree with Python's to within 2 points.
 
-## 8. Limits
+## 9. Limits
 
-Not modeled: taxes and account types, pensions and annuities, home equity, health-care shocks, couples,
-and flexible spending rules. Returns are independent from year to year, so the model does not capture
-momentum, mean reversion or regime changes, and the lognormal tails may understate crash risk.
+Not modeled: taxes and account types, pensions and annuities, home equity, health-care shocks and
+couples. The guardrails rule is simplified (no inflation-skip rule and no end-of-plan exemption).
+Returns are independent from year to year, so the model does not capture momentum, mean reversion or regime changes, and the lognormal tails may understate crash risk.

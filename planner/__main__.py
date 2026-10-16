@@ -23,6 +23,8 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--fund-fee", type=float, default=0.0005, help="fund expense ratio")
     p.add_argument("--market", choices=["jpm_2026", "vanguard_2026"], default="jpm_2026")
     p.add_argument("--haircut", action="store_true", help="cut Social Security to 83%% from 2034")
+    p.add_argument("--rule", choices=["fixed", "guardrails", "percent"], default="fixed", help="retirement spending rule")
+    p.add_argument("--crash", action="store_true", help="stress test: -25%% and -10%% returns in the first two retirement years")
     p.add_argument("--sims", type=int, default=5_000)
     a = p.parse_args(argv)
 
@@ -30,7 +32,7 @@ def main(argv: list[str] | None = None) -> None:
         current_age=a.age, retirement_age=a.retire, plan_to_age=a.plan_to, current_savings=a.savings,
         annual_income=a.income, savings_rate=a.rate, retirement_spending=a.spend, social_security=a.ss,
         ss_claim_age=a.claim, advisory_fee=a.fee, fund_fee=a.fund_fee, market=a.market,
-        ss_haircut=a.haircut, n_sims=a.sims,
+        ss_haircut=a.haircut, spending_rule=a.rule, retirement_shock=(-0.25, -0.10) if a.crash else (), n_sims=a.sims,
     )
     print(format_plan(build_plan(inputs)))
 

@@ -11,8 +11,10 @@ The model runs in annual steps and in *real* (today's) dollars:
 4. While working, the client contributes ``savings_rate`` of income at the
    start of each year. In retirement, the portfolio funds whatever spending
    Social Security does not cover.
-5. A path *succeeds* if every year of retirement spending is fully funded
-   through ``plan_to_age``.
+5. A spending rule sets each retirement year's withdrawal: a fixed real
+   amount, Guyton-Klinger style guardrails, or a share of the portfolio.
+6. A path *succeeds* if every planned withdrawal is paid in full through
+   ``plan_to_age``.
 """
 
 from __future__ import annotations
@@ -25,6 +27,19 @@ from . import assumptions as A
 from .social_security import estimate_annual_benefit
 
 PERCENTILES = (10, 25, 50, 75, 90)
+SPENDING_RULES = ("fixed", "guardrails", "percent")
+
+# Guardrails (after Guyton & Klinger, 2006): compare this year's withdrawal rate
+# with the rate at retirement. Above 120% of it, cut spending 10%; below 80%,
+# raise it 10%. The multiplier stays between 50% and 150% of the goal.
+GUARDRAIL_UPPER = 1.2
+GUARDRAIL_LOWER = 0.8
+GUARDRAIL_CUT = 0.9
+GUARDRAIL_RAISE = 1.1
+GUARDRAIL_MIN = 0.5
+GUARDRAIL_MAX = 1.5
+# A retirement year "falls short" when spending drops below this share of the goal.
+SPENDING_FLOOR = 0.8
 
 
 @dataclass(frozen=True)
@@ -53,6 +68,10 @@ class PlanInputs:
     fund_fee: float = 0.0005
     market: str = "jpm_2026"
     correlation: float | None = None
+    spending_rule: str = "fixed"
+    # Real, after-fee returns forced onto the first retirement years, e.g.
+    # (-0.25, -0.10) for a crash right after retiring (sequence-of-returns risk).
+    retirement_shock: tuple[float, ...] = ()
     n_sims: int = 5_000
     seed: int = 2026
     start_year: int = 2026
@@ -67,6 +86,10 @@ class PlanInputs:
                 raise ValueError(f"{name} must be between 0 and 1.")
         if self.n_sims < 1:
             raise ValueError("n_sims must be positive.")
+        if self.spending_rule not in SPENDING_RULES:
+            raise ValueError(f"spending_rule must be one of {SPENDING_RULES}.")
+        if any(not -1.0 < r < 10.0 for r in self.retirement_shock):
+            raise ValueError("retirement_shock returns must be greater than -100%.")
 
     def with_(self, **changes) -> PlanInputs:
         """Return a copy with some fields changed (handy for what-if analysis)."""
@@ -96,8 +119,9 @@ class SimulationResult:
     contributions: np.ndarray        # (years,) contribution each year, today's $
     spending: float                  # retirement spending goal, today's $/yr
     social_security: np.ndarray      # (years,) benefit each year, today's $
-    withdrawals_needed: np.ndarray   # (years,) portfolio withdrawal needed each year
+    withdrawals_needed: np.ndarray   # (years,) portfolio withdrawal the fixed goal needs each year
     equity_weights: np.ndarray       # (years,) glide path
+    spending_paths: np.ndarray = field(repr=False, default=None)  # (n_sims, years) spending incl. SS
     annual_returns: np.ndarray = field(repr=False, default=None)  # (n_sims, years) real, net of fees
 
     @property
@@ -133,6 +157,29 @@ class SimulationResult:
         """Retirement years before Social Security starts (funded entirely by the portfolio)."""
         return max(self.inputs.ss_claim_age - self.inputs.retirement_age, 0)
 
+    def _retired_spending(self) -> np.ndarray:
+        return self.spending_paths[:, self.retirement_index:]
+
+    def spending_percentiles(self, pcts=PERCENTILES) -> dict[int, np.ndarray]:
+        """Percentiles of each year's actual spending (today's $), retirement years only."""
+        return {p: np.percentile(self._retired_spending(), p, axis=0) for p in pcts}
+
+    @property
+    def median_spending(self) -> float:
+        """Median across paths of average annual spending in retirement."""
+        return float(np.median(self._retired_spending().mean(axis=1)))
+
+    @property
+    def low_spending(self) -> float:
+        """Spending in the leanest retirement year, 10th percentile across paths."""
+        return float(np.percentile(self._retired_spending().min(axis=1), 10))
+
+    @property
+    def shortfall_probability(self) -> float:
+        """Share of paths where spending drops below SPENDING_FLOOR x the goal in some year."""
+        floor = SPENDING_FLOOR * self.spending - 1e-6
+        return float((self._retired_spending().min(axis=1) < floor).mean())
+
     def median_depletion_age(self) -> float | None:
         failed = self.depletion_age[~np.isnan(self.depletion_age)]
         return float(np.median(failed)) if failed.size else None
@@ -149,6 +196,9 @@ class SimulationResult:
             "bridge_years": self.bridge_years,
             "mean_funded_ratio": round(float(self.funded_ratio.mean()), 4),
             "median_depletion_age": self.median_depletion_age(),
+            "median_spending": round(self.median_spending),
+            "low_spending": round(self.low_spending),
+            "shortfall_probability": round(self.shortfall_probability, 4),
         }
 
 
@@ -226,6 +276,12 @@ def simulate(inputs: PlanInputs, returns: np.ndarray | None = None) -> Simulatio
     """Run the Monte Carlo simulation. Pass ``returns`` to reuse a return matrix."""
     real_returns = simulate_returns(inputs) if returns is None else returns
     n, T = real_returns.shape
+    R = inputs.working_years
+    if inputs.retirement_shock:
+        real_returns = real_returns.copy()
+        for i, shock in enumerate(inputs.retirement_shock):
+            if R + i < T:
+                real_returns[:, R + i] = shock
 
     contributions = inputs.savings_rate * income_path(inputs)
     spend = retirement_spending(inputs)
@@ -233,21 +289,42 @@ def simulate(inputs: PlanInputs, returns: np.ndarray | None = None) -> Simulatio
     ages = inputs.current_age + np.arange(T + 1)
     retired = ages[:-1] >= inputs.retirement_age
     need = np.where(retired, np.maximum(spend - ss, 0.0), 0.0)
+    rule = inputs.spending_rule
 
     balances = np.empty((n, T + 1))
     balances[:, 0] = inputs.current_savings
+    spending_paths = np.zeros((n, T))
     depletion_age = np.full(n, np.nan)
     funded = np.zeros(n)
     alive = np.ones(n, dtype=bool)
+    multiplier = np.ones(n)
+    start_balance = np.ones(n)
 
     for t in range(T):
         pre = balances[:, t] + contributions[t]
-        paid = np.minimum(np.maximum(pre, 0.0), need[t])
+        if t == R:
+            start_balance = np.maximum(pre, 1e-9)
+        if not retired[t]:
+            planned = np.zeros(n)
+        elif rule == "percent":
+            planned = need[t] * np.maximum(pre, 0.0) / start_balance
+        elif rule == "guardrails":
+            if t > R:
+                ratio = multiplier * start_balance / np.maximum(pre, 1e-9)
+                multiplier = np.where(ratio > GUARDRAIL_UPPER, np.maximum(multiplier * GUARDRAIL_CUT, GUARDRAIL_MIN),
+                                      np.where(ratio < GUARDRAIL_LOWER,
+                                               np.minimum(multiplier * GUARDRAIL_RAISE, GUARDRAIL_MAX), multiplier))
+            planned = need[t] * multiplier
+        else:
+            planned = np.full(n, need[t])
+        paid = np.minimum(np.maximum(pre, 0.0), planned)
         funded += paid
-        short = (pre < need[t] - 1e-9) & alive
+        if retired[t]:
+            spending_paths[:, t] = paid + ss[t]
+        short = (pre < planned - 1e-9) & alive
         depletion_age[short] = ages[t]
         alive &= ~short
-        after = np.maximum(pre - need[t], 0.0)
+        after = np.maximum(pre - planned, 0.0)
         balances[:, t + 1] = after * (1.0 + real_returns[:, t])
 
     total_need = need.sum()
@@ -266,4 +343,5 @@ def simulate(inputs: PlanInputs, returns: np.ndarray | None = None) -> Simulatio
         withdrawals_needed=need,
         equity_weights=glide_path(inputs),
         annual_returns=real_returns,
+        spending_paths=spending_paths,
     )
