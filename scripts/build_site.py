@@ -22,7 +22,10 @@ ROOT = Path(__file__).resolve().parent.parent
 WEB = ROOT / "web"
 ASSUMPTIONS = ROOT / "planner" / "data" / "assumptions.json"
 CASE_STUDY = ROOT / "docs" / "results.json"
-VENDOR = ["gsap.min.js", "ScrollTrigger.min.js", "SplitText.min.js", "lenis.js", "rb-waves.js", "rb-text.js"]
+VENDOR = ["gsap.min.js", "ScrollTrigger.min.js", "SplitText.min.js", "lenis.js", "rb-waves.js", "rb-text.js", "rb-ui.js"]
+# ES modules in dependency order; each one only imports from modules listed before it.
+MODULES = ["engine.js", "ui.js", "planner.js", "home.js", "pages.js", "site.js"]
+CASE_KEYS = ("clients", "cost_of_waiting", "fees", "outlook", "social_security")
 FONT_URL = re.compile(r'url\("fonts/([^"]+\.woff)"\)')
 
 
@@ -38,7 +41,40 @@ def script_safe(js: str) -> str:
     return re.sub(r"</(script)", r"<\\/\1", js, flags=re.IGNORECASE)
 
 
-IMPORT_ENGINE = re.compile(r"^import\s*\{[\s\S]*?\}\s*from\s*[\"']\./engine\.js[\"'];\s*", re.MULTILINE)
+IMPORT = re.compile(r"^import\s*\{([\s\S]*?)\}\s*from\s*[\"']\./([\w-]+)\.js[\"'];[ \t]*$", re.MULTILINE)
+EXPORT = re.compile(r"^export\s+(?:async\s+)?(?:function\*?|const|let|class)\s+([A-Za-z_$][\w$]*)", re.MULTILINE)
+UNSUPPORTED_EXPORT = re.compile(r"^export\s+(?:default|\{|\*)", re.MULTILINE)
+
+
+def bundle(names: list[str]) -> str:
+    """A tiny ES-module bundler for this project's own code.
+
+    Each module becomes an IIFE that returns its exports; each `import { a, b as c } from "./m.js"`
+    becomes `const { a, b: c } = __m;`. Only named imports and exports declared with
+    function/const/let/class are supported, which is all the site uses.
+    """
+    out = []
+    for name in names:
+        src = (WEB / name).read_text(encoding="utf-8")
+        if UNSUPPORTED_EXPORT.search(src):
+            raise SystemExit(f"build_site: {name} uses an export form the bundler doesn't support")
+        exports = EXPORT.findall(src)
+
+        def rewrite_import(m: re.Match) -> str:
+            dep = m.group(2).replace("-", "_")
+            if f"{m.group(2)}.js" not in names[: names.index(name)]:
+                raise SystemExit(f"build_site: {name} imports {m.group(2)}.js, which must come earlier in MODULES")
+            specs = [p.strip() for p in m.group(1).split(",") if p.strip()]
+            fields = ", ".join(s.replace(" as ", ": ") for s in specs)
+            return f"const {{ {fields} }} = __{dep};"
+
+        src = IMPORT.sub(rewrite_import, src)
+        if re.search(r"^import\s", src, re.MULTILINE):
+            raise SystemExit(f"build_site: {name} uses an import form the bundler doesn't support")
+        src = re.sub(r"^export\s+", "", src, flags=re.MULTILINE)
+        var = "__" + name[:-3].replace("-", "_")
+        out.append(f"const {var} = (() => {{\n{src}\nreturn {{ {', '.join(exports)} }};\n}})();")
+    return "\n\n".join(out) + "\n"
 
 
 def to_fragment(html: str) -> str:
@@ -56,17 +92,10 @@ def to_fragment(html: str) -> str:
 def build(out: Path, csp: bool = True, fragment: bool = False) -> Path:
     html = (WEB / "index.html").read_text(encoding="utf-8")
     css = inline_fonts((WEB / "styles.css").read_text(encoding="utf-8"))
-    engine = (WEB / "engine.js").read_text(encoding="utf-8")
-    app = (WEB / "app.js").read_text(encoding="utf-8")
-
-    app, n = IMPORT_ENGINE.subn("", app, count=1)
-    if n != 1:
-        raise SystemExit("build_site: could not find the engine import in web/app.js")
-    # Engine at module top level (it uses `export`); app in its own block scope.
-    script = f"{engine}\n\n{{\n{app}\n}}\n"
+    script = bundle(MODULES)
     data = json.dumps(json.loads(ASSUMPTIONS.read_text(encoding="utf-8")), separators=(",", ":"))
     case = json.loads(CASE_STUDY.read_text(encoding="utf-8")) if CASE_STUDY.exists() else {}
-    case_json = json.dumps({k: case[k] for k in ("cost_of_waiting", "fees", "outlook", "social_security") if k in case},
+    case_json = json.dumps({k: case[k] for k in CASE_KEYS if k in case},
                            separators=(",", ":"))
     vendor = "\n;\n".join((WEB / "vendor" / name).read_text(encoding="utf-8") for name in VENDOR)
 

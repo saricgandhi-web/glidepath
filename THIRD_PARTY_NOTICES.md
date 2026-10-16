@@ -8,7 +8,7 @@ vendored file and next to each font.
 |---|---|---|---|
 | [GSAP](https://gsap.com) core, ScrollTrigger and SplitText, by GreenSock | 3.15.0 | `web/vendor/gsap.min.js`, `ScrollTrigger.min.js`, `SplitText.min.js` | [GSAP Standard "No Charge" License](https://gsap.com/standard-license) |
 | [Lenis](https://github.com/darkroomengineering/lenis), by darkroom.engineering | 1.3.26 | `web/vendor/lenis.js` | MIT |
-| Waves, SplitText, ScrollReveal and CountUp from [React Bits](https://github.com/DavidHDev/react-bits), by David Haz | 2026 sources | `web/vendor/rb-waves.js`, `web/vendor/rb-text.js` | MIT + Commons Clause |
+| Waves, SplitText, ScrollReveal, CountUp, SplitFlapText, Counter, Magnet, SpotlightCard, ScrollVelocity, CircularText, ScrubField and StaggeredMenu from [React Bits](https://github.com/DavidHDev/react-bits), by David Haz | 2026 sources | `web/vendor/rb-waves.js`, `rb-text.js`, `rb-ui.js` | MIT + Commons Clause |
 | [Geist](https://github.com/vercel/geist-font), by Vercel | 1.800 | `web/fonts/Geist-*.woff` | [SIL Open Font License 1.1](web/fonts/Geist-OFL.txt) |
 | [Source Serif 4](https://github.com/adobe-fonts/source-serif), by Adobe | 4.005 | `web/fonts/GlidepathSerif*.woff` | [SIL Open Font License 1.1](web/fonts/GlidepathSerif-OFL.md) |
 
@@ -19,9 +19,10 @@ vendored file and next to each font.
 - **Lenis** was built from the tagged TypeScript sources by stripping types and module syntax; the
   code is otherwise unchanged.
 - **React Bits** components are written for React. They were ported to plain JavaScript for this site:
-  the shaders, simulation and animation logic follow the originals, and only the React wrappers were
-  replaced. The Commons Clause allows using them as part of an application or website, which is how
-  they are used here; it does not allow selling or redistributing the components on their own, so
+  the shaders, simulation and animation logic follow the originals; the React wrappers were replaced
+  by functions that take a DOM element, and Motion springs by small spring functions or GSAP tweens.
+  The Commons Clause allows using them as part of an application or website, which is how they are
+  used here; it does not allow selling or redistributing the components on their own, so
   please take them from the [original project](https://github.com/DavidHDev/react-bits) rather than
   from this repository if you want to reuse them.
 - **Source Serif 4** has the Reserved Font Name "Source". Because the copies here are subset to Latin

@@ -13,7 +13,7 @@ confidence.
 [![CI](https://github.com/saricgandhi-web/glidepath/actions/workflows/ci.yml/badge.svg)](https://github.com/saricgandhi-web/glidepath/actions/workflows/ci.yml)
 ![License: MIT](https://img.shields.io/badge/license-MIT-1f5c4a)
 
-![The planner](docs/images/app.png)
+![Glidepath home page](docs/images/home.jpg)
 
 ## The problem
 
@@ -37,26 +37,32 @@ run out of money, and what should I change? That computation should be free, tra
 | **Goal-seek solvers** | Bisection on common random numbers finds the exact savings rate, sustainable spending and earliest retirement age for a target probability of success. |
 | **Spending rules** | Fixed spending, Guyton-Klinger style guardrails, or a percent of the portfolio, with metrics for lean years and deep cuts, not just the chance of running out. |
 | **Social Security estimator** | The SSA's 90/32/15 PIA formula with bend points, taxable maximum, 35-year averaging and early/delayed claiming adjustments, plus a trust-fund depletion stress test. |
-| **Interactive web app** | A browser port of the engine with seven tabs (below), animated with GSAP, Lenis smooth scrolling and React Bits components. One self-contained file: no tracking, no network requests. |
+| **Website** | A five-page site built around a browser port of the engine: a home page with a live demo, the planner with six views, an interactive case study, a methodology tour and an about page. Animated with GSAP, Lenis smooth scrolling and React Bits components. One self-contained file: no tracking, no network requests. |
 | **Case study** | A consulting-style analysis of three hypothetical clients with four quantified findings. Every number regenerates from one script. |
 | **Verification** | 41 Python unit tests against closed-form results, plus 12 parity tests proving the JavaScript engine reproduces the Python engine. CI runs on every push. |
 
-### The web app
+### The website
 
-Type your situation into one sentence and the answer updates as you go. The tabs then take it apart
-the way an advisor would in a planning meeting:
-
-| Tab | What it answers |
+| Page | What's on it |
 |---|---|
-| **Plan** | Fan chart of outcomes by age, the three levers that reach 85% confidence (one click to apply), what fees cost you, and a printable action plan. |
+| **Home** | A live example on a split-flap board (drag the retirement age and watch the odds and the fan chart change), the advice gap in numbers, six advisor questions answered on a scroll-driven card track, a pinned walkthrough that draws real simulated lifetimes as you scroll, the case-study findings and an FAQ. |
+| **Planner** | Type your situation into one sentence and the answer updates as you go. Six views take it apart the way an advisor would in a planning meeting (table below). |
+| **Insights** | The case study as an interactive article: three example clients and four findings, each with its chart. |
+| **How it works** | The model in plain language, from return assumptions to solvers and tests, with a source for every number. |
+| **About** | Why the project exists, privacy guarantees, how it's built and credits. |
+
+![The planner](docs/images/planner.jpg)
+
+| Planner view | What it answers |
+|---|---|
+| **Overview** | Fan chart of outcomes by age, the three levers that reach 85% confidence (one click to apply), what fees cost you, and a printable action plan. |
 | **Stress test** | Your chance of success under seven scenarios: a crash the year you retire, weaker markets, a Social Security cut, living to 100, losing your job early, higher fees, and all market risks at once. |
 | **Spending rules** | Fixed spending vs. guardrails vs. percent of portfolio, side by side, with the range of income each one produces year by year. |
 | **Social Security** | Your chance of success for every claiming age from 62 to 70, with or without the 2034 benefit cut. |
-| **Compare** | Build a Plan B (retire later, save more, spend less, change the stock mix, fees or rule) and see every metric and the median path next to Plan A. |
-| **Assumptions** | The market outlook, fees, Social Security and glide path behind the plan, all editable, with a source for each number. |
-| **About** | The problem, the case-study findings, how it's built and the privacy guarantees. |
+| **Compare plans** | Build a Plan B by dragging its numbers (retire later, save more, spend less, change the stock mix, fees or rule) and see every metric and the median path next to Plan A. |
+| **Assumptions** | The market outlook, fees, Social Security and glide path behind the plan, all editable. |
 
-Links are shareable: `#stress`, `#compare` and the other tab names open that tab directly.
+Every page and view has its own link, such as `#/planner/stress` or `#/insights`.
 
 ## Key findings
 
@@ -151,7 +157,9 @@ planner/                 Python planning engine
   data/assumptions.json  every assumption, with sources
 web/                     browser app
   engine.js              JavaScript port of the engine, verified against Python
-  app.js                 interface: sentence form, tabs, charts, animation
+  site.js                routing, header, menu and page transitions
+  home.js, planner.js    the home page and the planner
+  pages.js, ui.js        Insights, How it works, About; shared charts and helpers
   vendor/                GSAP, Lenis and React Bits ports (see THIRD_PARTY_NOTICES.md)
   fonts/                 Geist and a renamed subset of Source Serif 4 (Latin only)
 analysis/case_study.py   generates the case study, charts and results
@@ -172,7 +180,7 @@ scripts/                 site bundler and parity fixture generator
 
 - **Engine:** Python and NumPy; a dependency-free JavaScript port for the browser
 - **Animation:** [GSAP](https://gsap.com) with ScrollTrigger and SplitText, [Lenis](https://github.com/darkroomengineering/lenis) smooth scrolling
-- **Components:** Waves background, SplitText, ScrollReveal and CountUp from [React Bits](https://reactbits.dev), ported to plain JavaScript
+- **Components:** Waves, SplitText, ScrollReveal, CountUp, SplitFlapText, Counter, Magnet, SpotlightCard, ScrollVelocity, CircularText, ScrubField and StaggeredMenu from [React Bits](https://reactbits.dev), ported to plain JavaScript
 - **Type:** [Geist](https://github.com/vercel/geist-font) and [Source Serif 4](https://github.com/adobe-fonts/source-serif) (subset and renamed Glidepath Serif, as its license requires)
 - **Quality:** GitHub Actions (Ruff, unit tests, parity tests, build), Dependabot, GitHub Pages
 

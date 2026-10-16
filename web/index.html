@@ -3,357 +3,804 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Glidepath</title>
-<meta name="description" content="A free, open-source Monte Carlo retirement planner. Runs entirely in your browser.">
+<title>Glidepath: a free Monte Carlo retirement planner</title>
+<meta name="description" content="A free, open-source Monte Carlo retirement planner. Stress tests, spending rules, Social Security timing and Plan A vs. Plan B, all running privately in your browser.">
+<meta name="theme-color" content="#0c2a21">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src data:; base-uri 'none'; form-action 'none'">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231f5c4a'/%3E%3Cpath d='M5 23c6-1 9-9 22-15' stroke='%23e4c46e' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M5 26c7-1 11-7 22-11' stroke='%23fff' stroke-width='1.6' fill='none' stroke-linecap='round' opacity='.7'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230c2a21'/%3E%3Cpath d='M5 23c6-1 9-9 22-15' stroke='%23d6ae52' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M5 26c7-1 11-7 22-11' stroke='%23fff' stroke-width='1.6' fill='none' stroke-linecap='round' opacity='.7'/%3E%3C/svg%3E">
 <style>/*STYLES*/</style>
 </head>
 <body>
 <script>if(!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){document.documentElement.classList.add("intro");setTimeout(function(){document.documentElement.classList.remove("intro")},4000)}</script>
-<a class="skip" href="#tabs">Skip to results</a>
-<header class="site-header">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header on-dark" id="site-header">
   <div class="wrap header-row">
-    <a class="wordmark" href="#plan" aria-label="Glidepath, back to the plan">
+    <a class="wordmark" href="#/" data-route-link="home" aria-label="Glidepath home">
       <svg viewBox="0 0 28 20" aria-hidden="true" class="wordmark-mark"><path d="M1 17c6-1 10-8 26-14"/><path d="M1 19.5c7-.8 12-6 26-10" class="faint"/></svg>
       Glidepath
     </a>
-    <nav class="site-nav" aria-label="Site">
-      <a href="#about" data-tab-link="about">About</a>
-      <a href="https://github.com/saricgandhi-web/glidepath">Code on GitHub</a>
-      <button class="button quiet" type="button" id="print-plan">Print your plan</button>
+    <nav class="site-nav" aria-label="Main">
+      <a href="#/planner" data-route-link="planner">Planner</a>
+      <a href="#/insights" data-route-link="insights">Insights</a>
+      <a href="#/method" data-route-link="method">How it works</a>
+      <a href="#/about" data-route-link="about">About</a>
+      <span class="nav-indicator" id="nav-indicator" aria-hidden="true"></span>
     </nav>
+    <div class="header-actions">
+      <a class="code-link" href="https://github.com/saricgandhi-web/glidepath">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5 2 10l5 5M13 5l5 5-5 5"/></svg>
+        <span>Source</span>
+      </a>
+      <span class="magnet" data-magnet><a class="button brass" href="#/planner">Build your plan</a></span>
+      <button class="menu-toggle" id="menu-toggle" type="button" aria-controls="sm-panel" aria-label="Menu">
+        <span class="sm-toggle-textWrap" aria-hidden="true"><span class="sm-toggle-textInner"><span class="sm-toggle-line">Menu</span></span></span>
+        <span class="sm-icon" aria-hidden="true"><span class="sm-icon-line"></span><span class="sm-icon-line sm-icon-line-v"></span></span>
+      </button>
+    </div>
   </div>
 </header>
 
-<main id="top">
-  <section class="hero" aria-labelledby="hero-title">
+<div class="sm" id="mobile-menu">
+  <div class="sm-prelayers" aria-hidden="true"><div class="sm-prelayer"></div><div class="sm-prelayer"></div></div>
+  <nav class="sm-panel" id="sm-panel" aria-label="Menu">
+    <ul class="sm-panel-list">
+      <li class="sm-panel-item"><a class="sm-panel-link" href="#/" data-route-link="home"><span class="sm-panel-itemLabel">Home</span></a></li>
+      <li class="sm-panel-item"><a class="sm-panel-link" href="#/planner" data-route-link="planner"><span class="sm-panel-itemLabel">Planner</span></a></li>
+      <li class="sm-panel-item"><a class="sm-panel-link" href="#/insights" data-route-link="insights"><span class="sm-panel-itemLabel">Insights</span></a></li>
+      <li class="sm-panel-item"><a class="sm-panel-link" href="#/method" data-route-link="method"><span class="sm-panel-itemLabel">How it works</span></a></li>
+      <li class="sm-panel-item"><a class="sm-panel-link" href="#/about" data-route-link="about"><span class="sm-panel-itemLabel">About</span></a></li>
+    </ul>
+    <div class="sm-extra">
+      <p>Free and open source. Everything runs in your browser.</p>
+      <a href="https://github.com/saricgandhi-web/glidepath">Source code on GitHub</a>
+    </div>
+  </nav>
+</div>
+
+<div class="curtain" id="curtain" aria-hidden="true"><svg class="page-rosette curtain-rosette"></svg></div>
+
+<main id="main">
+
+<!-- =============================================================== HOME -->
+<div class="page" id="page-home" data-page="home">
+  <section class="hero band" aria-labelledby="hero-title">
     <div class="hero-bg" id="hero-bg" aria-hidden="true"></div>
-    <div class="wrap hero-inner">
-      <p class="print-only" id="print-date"></p>
-      <h1 id="hero-title" class="hero-title">Will your money last?</h1>
-      <p class="lede" id="lede">A free version of the planning software financial advisors use. Describe your situation and Glidepath tests it against 5,000 simulated markets.</p>
-
-      <form class="story" id="story" novalidate>
-        I'm <input id="f-age" aria-label="Current age" inputmode="numeric" autocomplete="off"> years old
-        with <input id="f-savings" aria-label="Invested savings in dollars" inputmode="decimal" autocomplete="off"> invested.
-        I earn <input id="f-income" aria-label="Annual pre-tax income in dollars" inputmode="decimal" autocomplete="off"> a year
-        and save <input id="f-rate" aria-label="Savings rate as a percent of income, including employer match" inputmode="decimal" autocomplete="off"> of it,
-        counting any employer match. I want to retire at <input id="f-retire" aria-label="Retirement age" inputmode="numeric" autocomplete="off">
-        and spend <input id="f-spend" aria-label="Retirement spending per year in today's dollars" inputmode="decimal" autocomplete="off"> a year
-        in today's dollars, through age <input id="f-planto" aria-label="Plan through age" inputmode="numeric" autocomplete="off">.
-      </form>
-      <p class="story-note" id="story-note" aria-live="polite"></p>
-      <p class="form-error" id="form-error" role="alert"></p>
-
-      <div class="answer" id="answer" aria-live="polite">
-        <div class="answer-line">
-          <span class="answer-figure"><span id="answer-figure">0</span><span class="pct">%</span></span>
-          <p class="answer-text" id="answer-text">of simulated markets pay for your spending every year.</p>
+    <svg class="hero-rosette" id="hero-rosette"></svg>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1 class="hero-title" id="hero-title" tabindex="-1">Will your money last?</h1>
+        <p class="hero-lede" id="hero-lede">Glidepath runs the same kind of Monte Carlo analysis financial advisors charge for. Describe your situation, and it tests your plan against 5,000 simulated markets and shows you what to change.</p>
+        <div class="hero-ctas" id="hero-ctas">
+          <span class="magnet" data-magnet><a class="button brass large" href="#/planner">Build your plan</a></span>
+          <button class="button ghost large" type="button" data-scroll-to="how">See how it works</button>
         </div>
-        <div class="answer-meta">
-          <div class="status" id="status"></div>
-          <div class="meter" aria-hidden="true">
-            <div class="meter-track"><div class="meter-fill" id="meter-fill"></div></div>
-            <div class="meter-target" id="meter-target"><span>Target 85%</span></div>
-            <div class="meter-scale"><span>0</span><span>50</span><span>100%</span></div>
+        <p class="hero-fine" id="hero-fine">Free. No sign-up. Nothing you type leaves your browser.</p>
+      </div>
+
+      <figure class="board" id="board" aria-labelledby="board-caption">
+        <div class="board-top">
+          <span class="board-dot" aria-hidden="true"></span>
+          <span class="board-title">Live example</span>
+          <span class="board-verdict" id="board-verdict"></span>
+        </div>
+        <div class="board-rows">
+          <div class="board-row">
+            <span class="board-label">Retire at</span>
+            <span class="flap" id="flap-age"></span>
           </div>
+          <div class="board-row">
+            <span class="board-label">Chance the money lasts</span>
+            <span class="flap-wrap"><span class="flap" id="flap-odds"></span><span class="flap-unit">%</span></span>
+          </div>
+        </div>
+        <div class="board-chart" id="board-chart"></div>
+        <div class="board-foot">
+          <span id="board-scrub"></span>
+          <span class="board-hint">Drag the age, or type one</span>
+        </div>
+        <figcaption class="board-caption" id="board-caption">Example saver: 35 years old with $90,000 invested, earning $110,000, saving 12% and planning to spend $75,000 a year in retirement.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <div class="ribbon" id="ribbon" role="region" aria-label="What Glidepath offers"></div>
+
+  <section class="section problem" aria-labelledby="statement">
+    <div class="wrap problem-grid">
+      <p class="statement" id="statement">Only about a third of Americans work with a financial advisor, and the typical one charges about 1% of everything they manage, every year. The math behind a good plan should be free.</p>
+      <div class="ledger" id="ledger">
+        <div class="ledger-item">
+          <div class="ledger-pair">
+            <div><span class="ledger-figure" data-value="34" data-suffix="%">34%</span><span class="ledger-label">of Americans have an advisor</span></div>
+            <div><span class="ledger-figure brass" data-value="74" data-suffix="%">74%</span><span class="ledger-label">of millionaires do</span></div>
+          </div>
+          <div class="ledger-bar" aria-hidden="true"><span style="width:34%"></span></div>
+          <div class="ledger-bar brass" aria-hidden="true"><span style="width:74%"></span></div>
+        </div>
+        <div class="ledger-item">
+          <span class="ledger-figure" data-value="1" data-suffix="%">1%</span>
+          <span class="ledger-label">of your portfolio, every year, is the typical advisory fee. On $500,000, that's $5,000 a year.</span>
+        </div>
+        <div class="ledger-item">
+          <span class="ledger-figure" data-value="39" data-suffix="%">39%</span>
+          <span class="ledger-label">of working-age households are at risk of not keeping their standard of living in retirement.</span>
+        </div>
+        <p class="ledger-sources">Northwestern Mutual, Planning &amp; Progress Study 2025. Kitces Research, 2024. Center for Retirement Research at Boston College, National Retirement Risk Index.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section questions band" id="questions" aria-labelledby="questions-title">
+    <div class="grain" aria-hidden="true"></div>
+    <div class="wrap questions-head">
+      <h2 id="questions-title">Ask what an advisor would ask.</h2>
+      <p class="section-lede">Six questions, answered for the example saver retiring at 62. Open any of them in the planner to run it on your own numbers.</p>
+    </div>
+    <div class="q-viewport" id="q-viewport">
+      <div class="q-track" id="q-track">
+        <article class="q-card">
+          <h3>Am I saving enough?</h3>
+          <div class="q-viz" id="qv-overview"></div>
+          <p class="q-answer" id="qa-overview">Calculating&hellip;</p>
+          <a class="q-link" href="#/planner">Try it with your numbers</a>
+        </article>
+        <article class="q-card">
+          <h3>What if markets crash the year I retire?</h3>
+          <div class="q-viz" id="qv-stress"></div>
+          <p class="q-answer" id="qa-stress">Calculating&hellip;</p>
+          <a class="q-link" href="#/planner/stress">Stress-test your plan</a>
+        </article>
+        <article class="q-card">
+          <h3>Should I spend less in bad years?</h3>
+          <div class="q-viz" id="qv-spending"></div>
+          <p class="q-answer" id="qa-spending">Calculating&hellip;</p>
+          <a class="q-link" href="#/planner/spending">Compare spending rules</a>
+        </article>
+        <article class="q-card">
+          <h3>When should I claim Social Security?</h3>
+          <div class="q-viz" id="qv-ss"></div>
+          <p class="q-answer" id="qa-ss">Calculating&hellip;</p>
+          <a class="q-link" href="#/planner/social-security">Find your claiming age</a>
+        </article>
+        <article class="q-card">
+          <h3>What are fees really costing me?</h3>
+          <div class="q-viz" id="qv-fees"></div>
+          <p class="q-answer" id="qa-fees">Calculating&hellip;</p>
+          <a class="q-link" href="#/planner">See your fee drag</a>
+        </article>
+        <article class="q-card">
+          <h3>What if I work two more years?</h3>
+          <div class="q-viz" id="qv-compare"></div>
+          <p class="q-answer" id="qa-compare">Calculating&hellip;</p>
+          <a class="q-link" href="#/planner/compare">Compare two plans</a>
+        </article>
+      </div>
+    </div>
+    <div class="wrap q-foot"><div class="q-progress" aria-hidden="true"><span id="q-progress"></span></div></div>
+  </section>
+
+  <section class="section how" id="how" aria-labelledby="how-title">
+    <div class="wrap how-grid">
+      <div class="how-steps">
+        <h2 id="how-title">How it works</h2>
+        <ol class="steps" id="steps">
+          <li class="step">
+            <h3>Tell it your situation</h3>
+            <p>One sentence: your age, savings, income, how much you save, when you want to retire and what you'll spend. Every field starts with a sensible default.</p>
+          </li>
+          <li class="step">
+            <h3>It plays out 5,000 lifetimes of markets</h3>
+            <p>Each year, stock and bond returns are drawn from J.P. Morgan's and Vanguard's long-term forecasts. A lifetime succeeds if every year of retirement gets paid for.</p>
+          </li>
+          <li class="step">
+            <h3>You get the changes that matter</h3>
+            <p>Solvers find the exact savings rate, spending level or retirement age that reaches 85% confidence, and stress tests show what could knock you off course.</p>
+          </li>
+        </ol>
+      </div>
+      <div class="how-stage" id="how-stage">
+        <div class="stage-chart">
+          <svg class="stage-paths" id="stage-paths" role="img" aria-label="Ninety simulated portfolio paths for the example saver from age 35 to 95"></svg>
+          <p class="stage-legend" id="stage-legend"></p>
+        </div>
+        <div class="stage-sentence" id="stage-sentence">
+          <p>I'm <span class="val">35</span> with <span class="val">$90,000</span> invested. I earn <span class="val">$110,000</span> a year and save <span class="val">12%</span>. I want to retire at <span class="val">62</span> and spend <span class="val">$75,000</span> a year.</p>
+        </div>
+        <div class="stage-levers" id="stage-levers">
+          <p id="stage-levers-title">Any one of these reaches 85%:</p>
+          <ul id="stage-levers-list"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section findings-section" aria-labelledby="findings-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="findings-title">What the case study found</h2>
+        <p class="section-lede">Three example clients, 10,000 simulated markets each. Every number regenerates from one script.</p>
+      </div>
+      <ol class="findings" id="findings"></ol>
+      <p class="more"><a class="text-link" href="#/insights">Read the case study</a></p>
+    </div>
+  </section>
+
+  <section class="section faq" aria-labelledby="faq-title">
+    <div class="wrap faq-grid">
+      <h2 id="faq-title">Questions people ask</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Is Glidepath really free?</summary>
+          <div class="faq-body"><p>Yes. There's no account, no ads and nothing to upgrade to. The code is open source under the MIT license, so anyone can read it, check it or reuse it.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary>Does it store or send what I type?</summary>
+          <div class="faq-body"><p>No. Every calculation runs in your browser. The page is built so it can't make network requests at all, and nothing is saved: close the tab and your numbers are gone.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary>What does "85% confidence" mean?</summary>
+          <div class="faq-body"><p>In 85% of the simulated markets, your savings pay for every year of planned spending. It's a planning target, not a guarantee. A higher target costs more today; a lower one leaves less room for bad luck.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary>How accurate is it?</summary>
+          <div class="faq-body"><p>It's a model, so it's only as good as its assumptions. The market forecasts come from J.P. Morgan and Vanguard, Social Security follows the SSA's formula, and the engine is checked by 53 automated tests. Taxes, pensions and home equity aren't modeled yet.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary>Is this financial advice?</summary>
+          <div class="faq-body"><p>No. Glidepath is an educational tool. It can show you how the numbers move, but it doesn't know your whole situation. For decisions about taxes, insurance or investments, talk to a qualified professional.</p></div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta band" aria-labelledby="cta-title">
+    <div class="grain" aria-hidden="true"></div>
+    <div class="wrap cta-grid">
+      <div>
+        <h2 id="cta-title">See your own number in about a minute.</h2>
+        <p>No account, no email, nothing to install.</p>
+        <span class="magnet" data-magnet><a class="button brass large" href="#/planner">Build your plan</a></span>
+      </div>
+      <div class="seal" id="seal"><svg class="seal-rosette" id="cta-rosette"></svg></div>
+    </div>
+  </section>
+</div>
+
+<!-- =============================================================== PLANNER -->
+<div class="page" id="page-planner" data-page="planner" hidden>
+  <section class="planner-head band" aria-labelledby="planner-title">
+    <svg class="page-rosette"></svg>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="wrap planner-head-grid">
+      <div class="planner-story">
+        <h1 class="page-title" id="planner-title" tabindex="-1">Your plan</h1>
+        <p class="print-only" id="print-date"></p>
+        <form class="story" id="story" novalidate data-enter>
+          I'm <input id="f-age" aria-label="Current age" inputmode="numeric" autocomplete="off"> years old
+          with <input id="f-savings" aria-label="Invested savings in dollars" inputmode="decimal" autocomplete="off"> invested.
+          I earn <input id="f-income" aria-label="Annual pre-tax income in dollars" inputmode="decimal" autocomplete="off"> a year
+          and save <input id="f-rate" aria-label="Savings rate as a percent of income, including employer match" inputmode="decimal" autocomplete="off"> of it,
+          counting any employer match. I want to retire at <input id="f-retire" aria-label="Retirement age" inputmode="numeric" autocomplete="off">
+          and spend <input id="f-spend" aria-label="Retirement spending per year in today's dollars" inputmode="decimal" autocomplete="off"> a year
+          in today's dollars, through age <input id="f-planto" aria-label="Plan through age" inputmode="numeric" autocomplete="off">.
+        </form>
+        <p class="story-note" id="story-note" aria-live="polite" data-enter></p>
+        <p class="form-error" id="form-error" role="alert"></p>
+      </div>
+      <div class="answer" id="answer" aria-live="polite" data-enter>
+        <div class="answer-figure"><span id="answer-figure">0</span><span class="pct">%</span></div>
+        <p class="answer-text" id="answer-text">of simulated markets pay for every year of planned spending.</p>
+        <div class="status" id="status"></div>
+        <div class="meter" aria-hidden="true">
+          <div class="meter-track"><div class="meter-fill" id="meter-fill"></div></div>
+          <div class="meter-target" id="meter-target"><span>Target 85%</span></div>
+          <div class="meter-scale"><span>0</span><span>50</span><span>100%</span></div>
         </div>
         <p class="rule-badge" id="rule-badge" hidden></p>
       </div>
     </div>
   </section>
 
-  <div class="tabbar" id="tabs">
-    <div class="wrap tabbar-inner">
-      <div class="tablist" role="tablist" aria-label="Plan views" id="tablist">
-        <button role="tab" id="tab-plan" aria-controls="panel-plan" data-tab="plan">Plan</button>
-        <button role="tab" id="tab-stress" aria-controls="panel-stress" data-tab="stress">Stress test</button>
-        <button role="tab" id="tab-spending" aria-controls="panel-spending" data-tab="spending">Spending rules</button>
-        <button role="tab" id="tab-ss" aria-controls="panel-ss" data-tab="ss">Social Security</button>
-        <button role="tab" id="tab-compare" aria-controls="panel-compare" data-tab="compare">Compare</button>
-        <button role="tab" id="tab-assumptions" aria-controls="panel-assumptions" data-tab="assumptions">Assumptions</button>
-        <button role="tab" id="tab-about" aria-controls="panel-about" data-tab="about">About</button>
-        <span class="tab-indicator" id="tab-indicator" aria-hidden="true"></span>
+  <div class="wrap planner-body" id="planner-body">
+    <aside class="planner-side">
+      <div class="viewnav" role="tablist" aria-label="Plan views" id="viewnav">
+        <button role="tab" id="tab-overview" aria-controls="panel-overview" data-view="overview">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 16c4-1 6-7 16-12"/><path d="M2 18h16" class="thin"/></svg>Overview</button>
+        <button role="tab" id="tab-stress" aria-controls="panel-stress" data-view="stress">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 5l5 4 3-3 3 7 5-3"/><path d="M2 18h16" class="thin"/></svg>Stress test</button>
+        <button role="tab" id="tab-spending" aria-controls="panel-spending" data-view="spending">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 7h16M2 13h16"/><path d="M6 4v6M13 10v6" class="thin"/></svg>Spending rules</button>
+        <button role="tab" id="tab-ss" aria-controls="panel-ss" data-view="ss">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 2" class="thin"/></svg>Social Security</button>
+        <button role="tab" id="tab-compare" aria-controls="panel-compare" data-view="compare">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 15c3-1 5-6 14-10"/><path d="M3 17c4-1 7-4 14-6" class="thin"/></svg>Compare plans</button>
+        <button role="tab" id="tab-assumptions" aria-controls="panel-assumptions" data-view="assumptions">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5h12M4 10h12M4 15h12"/><circle cx="8" cy="5" r="1.6" class="dot"/><circle cx="13" cy="10" r="1.6" class="dot"/><circle cx="6" cy="15" r="1.6" class="dot"/></svg>Assumptions</button>
+        <span class="viewnav-indicator" id="viewnav-indicator" aria-hidden="true"></span>
       </div>
-      <span class="busy" id="busy" aria-hidden="true">Updating</span>
-    </div>
-  </div>
+      <div class="side-card">
+        <div class="side-top"><span class="side-odds" id="side-odds">0%</span><span class="side-label" id="side-label"></span></div>
+        <p class="side-sub">chance your money lasts</p>
+        <div class="side-meter" aria-hidden="true"><div class="side-fill" id="side-fill"></div><div class="side-target" id="side-target"></div></div>
+        <button class="button quiet small" type="button" id="print-plan">Print your plan</button>
+        <span class="busy" id="busy" aria-hidden="true">Updating</span>
+      </div>
+    </aside>
 
-  <div class="wrap panels">
-    <!-- PLAN -->
-    <section class="panel" role="tabpanel" id="panel-plan" aria-labelledby="tab-plan" tabindex="0">
-      <div class="block">
-        <div class="block-head">
-          <h2>Your portfolio, in today's dollars</h2>
-          <p class="sub">Each band is a range of simulated outcomes. Hover, or focus the chart and use the arrow keys, to read any age.</p>
+    <div class="planner-main">
+      <!-- OVERVIEW -->
+      <section class="panel" role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" tabindex="0">
+        <div class="sheet chart-sheet">
+          <div class="block-head">
+            <h2>Your portfolio, in today's dollars</h2>
+            <p class="sub">Each band is a range of simulated outcomes. Hover, or focus the chart and use the arrow keys, to read any age.</p>
+          </div>
+          <dl class="key-figures">
+            <div><dt>Median at retirement</dt><dd id="kf-median">&nbsp;</dd></div>
+            <div><dt>In a bad market (10th percentile)</dt><dd id="kf-bad">&nbsp;</dd></div>
+            <div><dt>Spending goal</dt><dd id="kf-spend">&nbsp;</dd></div>
+            <div><dt>Social Security, a year</dt><dd id="kf-ss">&nbsp;</dd></div>
+          </dl>
+          <ul class="legend">
+            <li><span class="key-band b2"></span>Middle 50% of outcomes</li>
+            <li><span class="key-band b1"></span>80% of outcomes</li>
+            <li><span class="key-line"></span>Median</li>
+            <li><span class="key-rule"></span>Retirement</li>
+          </ul>
+          <div class="chart" id="fan-chart" tabindex="0" role="img" aria-label="Fan chart of projected portfolio value by age"></div>
+          <details class="table-view">
+            <summary>Show the numbers</summary>
+            <div class="table-scroll"><table class="data-table" id="fan-table"></table></div>
+          </details>
         </div>
-        <ul class="legend">
-          <li><span class="key-band b2"></span>Middle 50% of outcomes</li>
-          <li><span class="key-band b1"></span>80% of outcomes</li>
-          <li><span class="key-line"></span>Median</li>
-          <li><span class="key-rule"></span>Retirement</li>
-        </ul>
-        <div class="chart" id="fan-chart" tabindex="0" role="img" aria-label="Fan chart of projected portfolio value by age"></div>
-        <details class="table-view">
-          <summary>Show the numbers</summary>
-          <div class="table-scroll"><table class="data-table" id="fan-table"></table></div>
-        </details>
-      </div>
 
-      <div class="block two-col">
-        <div class="col">
-          <h2 id="levers-title">Three ways to reach 85% confidence</h2>
-          <p class="sub" id="levers-sub">Each one closes the gap on its own. Apply one to see the new plan.</p>
-          <ul class="levers" id="levers" aria-labelledby="levers-title"></ul>
-        </div>
-        <div class="col">
-          <h2>What fees cost you</h2>
-          <p class="sub">Median portfolio at retirement for this plan, by how you invest.</p>
-          <div class="hbars" id="fees"></div>
-          <p class="note" id="fee-note"></p>
-        </div>
-      </div>
-
-      <div class="block">
-        <div class="block-head">
-          <h2>Your action plan</h2>
-          <p class="sub">Ordered by how much each step changes the outcome.</p>
-        </div>
-        <ol class="plan-list" id="plan-list"></ol>
-      </div>
-    </section>
-
-    <!-- STRESS TEST -->
-    <section class="panel" role="tabpanel" id="panel-stress" aria-labelledby="tab-stress" tabindex="0" hidden>
-      <div class="block">
-        <div class="block-head">
-          <h2>How your plan holds up</h2>
-          <p class="sub" id="stress-lead">Seven things that go wrong for real retirees, applied to your plan one at a time.</p>
-        </div>
-        <div class="stress" id="stress-list"></div>
-      </div>
-      <div class="block">
-        <div class="block-head">
-          <h2>Why the first years of retirement matter most</h2>
-          <p class="sub">A crash right after you retire hurts far more than the same crash ten years later, because you're selling while prices are low. Median portfolio with and without a crash in your first two retirement years:</p>
-        </div>
-        <ul class="legend">
-          <li><span class="key-line"></span>Your plan</li>
-          <li><span class="key-line brass"></span>Crash at retirement (&minus;25%, then &minus;10%)</li>
-        </ul>
-        <div class="chart" id="seq-chart" role="img" aria-label="Median portfolio with and without a crash at retirement"></div>
-      </div>
-    </section>
-
-    <!-- SPENDING RULES -->
-    <section class="panel" role="tabpanel" id="panel-spending" aria-labelledby="tab-spending" tabindex="0" hidden>
-      <div class="block">
-        <div class="block-head">
-          <h2>How you spend changes the odds</h2>
-          <p class="sub">Advisors rarely recommend spending the same amount no matter what. Compare three ways to draw down the same portfolio.</p>
-        </div>
-        <div class="table-scroll">
-          <table class="rules-table" id="rules-table">
-            <thead><tr><th scope="col">Rule</th><th scope="col">Money lasts</th><th scope="col">Typical yearly spending</th><th scope="col">Leanest year (bad markets)</th><th scope="col">Chance of a year below 80% of goal</th><th scope="col"><span class="visually-hidden">Action</span></th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="rule-notes">
-          <p><strong>Fixed:</strong> the same real amount every year. Simple, and the most likely to run dry.</p>
-          <p><strong>Guardrails:</strong> start at your goal, cut 10% when your withdrawal rate drifts 20% above where it started, raise 10% when it drifts 20% below. Based on Guyton and Klinger (2006).</p>
-          <p><strong>Percent of portfolio:</strong> withdrawals rise and fall with your balance, so the money never runs out, but spending swings with the market.</p>
-        </div>
-      </div>
-      <div class="block">
-        <div class="block-head">
-          <h2 id="spend-chart-title">Yearly spending under guardrails</h2>
-          <p class="sub">Spending in today's dollars, including Social Security, across simulated markets.</p>
-        </div>
-        <div class="segmented" role="group" aria-label="Spending rule to chart" id="spend-rule-pick"></div>
-        <ul class="legend">
-          <li><span class="key-band b1"></span>80% of outcomes</li>
-          <li><span class="key-line"></span>Median</li>
-          <li><span class="key-line brass"></span>Your goal</li>
-        </ul>
-        <div class="chart" id="spend-chart" role="img" aria-label="Spending by age under the selected rule"></div>
-      </div>
-    </section>
-
-    <!-- SOCIAL SECURITY -->
-    <section class="panel" role="tabpanel" id="panel-ss" aria-labelledby="tab-ss" tabindex="0" hidden>
-      <div class="block">
-        <div class="block-head">
-          <h2>When to claim Social Security</h2>
-          <p class="sub" id="ss-lead">Claiming later means a bigger check for life, but more years paid for by your portfolio first.</p>
-        </div>
-        <label class="check"><input type="checkbox" id="ss-stress"> <span>Also show the result if benefits are cut to 83% in 2034</span></label>
-        <ul class="legend">
-          <li><span class="key-line"></span>Chance your money lasts</li>
-          <li id="ss-legend-cut" hidden><span class="key-line brass"></span>With the 2034 cut</li>
-        </ul>
-        <div class="chart" id="ss-chart" role="img" aria-label="Chance of success by Social Security claiming age"></div>
-        <div class="table-scroll"><table class="data-table" id="ss-table"></table></div>
-      </div>
-    </section>
-
-    <!-- COMPARE -->
-    <section class="panel" role="tabpanel" id="panel-compare" aria-labelledby="tab-compare" tabindex="0" hidden>
-      <div class="block">
-        <div class="block-head">
-          <h2>Plan A vs. Plan B</h2>
-          <p class="sub">Plan A is the plan above. Change Plan B here to test a decision before you make it.</p>
-        </div>
-        <div class="compare">
-          <form class="compare-form" id="b-form" novalidate>
-            <h3>Plan B</h3>
-            <label class="field">Retire at <input type="text" id="b-retire" inputmode="numeric" autocomplete="off"></label>
-            <label class="field">Savings rate, % of income <input type="text" id="b-rate" inputmode="decimal" autocomplete="off"></label>
-            <label class="field">Retirement spending, $ a year <input type="text" id="b-spend" inputmode="decimal" autocomplete="off"></label>
-            <label class="field">Stocks at retirement, % <input type="text" id="b-eq" inputmode="decimal" autocomplete="off"></label>
-            <label class="field">Total fees, % a year <input type="text" id="b-fee" inputmode="decimal" autocomplete="off"></label>
-            <label class="field">Spending rule
-              <select id="b-rule"><option value="fixed">Fixed</option><option value="guardrails">Guardrails</option><option value="percent">Percent of portfolio</option></select>
-            </label>
-            <div class="form-actions">
-              <button class="button quiet" type="button" id="b-reset">Copy Plan A</button>
-              <button class="button" type="button" id="b-apply">Make Plan B my plan</button>
-            </div>
-            <p class="form-error" id="b-error" role="alert"></p>
-          </form>
-          <div class="compare-results">
-            <div class="table-scroll"><table class="compare-table" id="compare-table"></table></div>
-            <ul class="legend">
-              <li><span class="key-line"></span>Plan A median</li>
-              <li><span class="key-line brass"></span>Plan B median</li>
-            </ul>
-            <div class="chart" id="compare-chart" role="img" aria-label="Median portfolio for Plan A and Plan B"></div>
+        <div class="block two-col">
+          <div class="col">
+            <h2 id="levers-title">Three ways to reach 85% confidence</h2>
+            <p class="sub" id="levers-sub">Each one closes the gap on its own. Apply one to see the new plan.</p>
+            <ul class="levers" id="levers" aria-labelledby="levers-title"></ul>
+          </div>
+          <div class="col">
+            <h2>What fees cost you</h2>
+            <p class="sub">Median portfolio at retirement for this plan, by how you invest.</p>
+            <div class="hbars" id="fees"></div>
+            <p class="note" id="fee-note"></p>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- ASSUMPTIONS -->
-    <section class="panel" role="tabpanel" id="panel-assumptions" aria-labelledby="tab-assumptions" tabindex="0" hidden>
-      <div class="block" id="settings">
-        <div class="block-head">
-          <h2>Fine-tune the assumptions</h2>
-          <p class="sub">The defaults follow published 2026 research. Change anything that doesn't fit you.</p>
+        <div class="block">
+          <div class="block-head">
+            <h2>Your action plan</h2>
+            <p class="sub">Ordered by how much each step changes the outcome.</p>
+          </div>
+          <ol class="plan-list" id="plan-list"></ol>
         </div>
-        <div class="settings">
-          <fieldset>
-            <legend class="group">Social Security</legend>
-            <label class="field">Benefit in today's dollars per year
-              <input type="text" id="s-ss" inputmode="decimal" autocomplete="off">
-              <span class="hint" id="s-ss-hint"></span>
-            </label>
-            <label class="field">Claim at age
-              <select id="s-claim"></select>
-            </label>
-            <label class="check"><input type="checkbox" id="s-haircut">
-              <span>Stress test: benefits cut to 83% from 2034, when the trust funds are projected to run out</span></label>
-          </fieldset>
-          <fieldset>
-            <legend class="group">Investments</legend>
-            <label class="field">Stocks today <output id="o-eq-now"></output>
-              <input type="range" id="s-eq-now" min="0" max="100" step="5">
-            </label>
-            <label class="field">Stocks at retirement <output id="o-eq-ret"></output>
-              <input type="range" id="s-eq-ret" min="0" max="100" step="5">
-            </label>
-            <div class="field">Market outlook
-              <div class="segmented" id="s-market" role="group" aria-label="Market outlook"></div>
-              <span class="hint" id="s-market-hint"></span>
-            </div>
-          </fieldset>
-          <fieldset>
-            <legend class="group">Costs</legend>
-            <div class="segmented" id="s-fee-presets" role="group" aria-label="Fee presets"></div>
-            <label class="field">Advisory fee, % of assets per year
-              <input type="text" id="s-adv" inputmode="decimal" autocomplete="off">
-            </label>
-            <label class="field">Fund expense ratio, %
-              <input type="text" id="s-fund" inputmode="decimal" autocomplete="off">
-            </label>
-          </fieldset>
-          <fieldset>
-            <legend class="group">Income and spending</legend>
-            <label class="field">Raises above inflation, % per year
-              <input type="text" id="s-growth" inputmode="decimal" autocomplete="off">
-            </label>
-            <label class="field">Default spending goal, % of final salary
-              <input type="text" id="s-replace" inputmode="decimal" autocomplete="off">
-              <span class="hint">Used until you type your own spending goal.</span>
-            </label>
-            <div class="field">Spending rule
-              <div class="segmented" id="s-rule" role="group" aria-label="Spending rule"></div>
-            </div>
-          </fieldset>
+      </section>
+
+      <!-- STRESS TEST -->
+      <section class="panel" role="tabpanel" id="panel-stress" aria-labelledby="tab-stress" tabindex="0" hidden>
+        <div class="block first">
+          <div class="block-head">
+            <h2>How your plan holds up</h2>
+            <p class="sub" id="stress-lead">Seven things that go wrong for real retirees, applied to your plan one at a time.</p>
+          </div>
+          <div class="stress" id="stress-list"></div>
         </div>
-      </div>
-      <div class="block" id="method">
-        <div class="block-head">
-          <h2>Method and sources</h2>
+        <div class="sheet chart-sheet">
+          <div class="block-head">
+            <h2>Why the first years of retirement matter most</h2>
+            <p class="sub">A crash right after you retire hurts far more than the same crash ten years later, because you're selling while prices are low. Median portfolio with and without a crash in your first two retirement years:</p>
+          </div>
+          <ul class="legend">
+            <li><span class="key-line"></span>Your plan</li>
+            <li><span class="key-line brass"></span>Crash at retirement (&minus;25%, then &minus;10%)</li>
+          </ul>
+          <div class="chart" id="seq-chart" tabindex="0" role="img" aria-label="Median portfolio with and without a crash at retirement"></div>
         </div>
-        <div class="method">
-          <div>
-            <h3>How the simulation works</h3>
-            <p>Every year, stock and bond returns are drawn from correlated lognormal distributions calibrated to institutional capital market assumptions. The portfolio shifts from stocks toward bonds as you approach retirement, fees come out of each year's return, and everything is converted to today's dollars.</p>
-            <p>While you work, you contribute your savings rate. In retirement, the portfolio pays whatever spending Social Security doesn't cover, under the spending rule you pick. A scenario succeeds if every planned withdrawal is paid in full through your plan-to age.</p>
-            <p>The three levers are solved by bisection on the same set of simulated markets, so applying one lands exactly on the target.</p>
-            <h3>Limits</h3>
-            <p>Taxes, pensions, home equity and one-off goals are not modeled. Social Security is estimated from your income with the SSA formula; your own statement at ssa.gov is more accurate. This is an educational tool, not investment advice.</p>
+      </section>
+
+      <!-- SPENDING RULES -->
+      <section class="panel" role="tabpanel" id="panel-spending" aria-labelledby="tab-spending" tabindex="0" hidden>
+        <div class="block first">
+          <div class="block-head">
+            <h2>How you spend changes the odds</h2>
+            <p class="sub">Advisors rarely recommend spending the same amount no matter what. Compare three ways to draw down the same portfolio.</p>
           </div>
           <div class="table-scroll">
-            <table class="sources" id="sources">
-              <thead><tr><th scope="col">Assumption</th><th scope="col">Value</th><th scope="col">Source</th></tr></thead>
+            <table class="rules-table" id="rules-table">
+              <thead><tr><th scope="col">Rule</th><th scope="col">Money lasts</th><th scope="col">Typical yearly spending</th><th scope="col">Leanest year (bad markets)</th><th scope="col">Chance of a year below 80% of goal</th><th scope="col"><span class="visually-hidden">Action</span></th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
+          <div class="rule-notes">
+            <p><strong>Fixed:</strong> the same real amount every year. Simple, and the most likely to run dry.</p>
+            <p><strong>Guardrails:</strong> start at your goal, cut 10% when your withdrawal rate drifts 20% above where it started, raise 10% when it drifts 20% below. Based on Guyton and Klinger (2006).</p>
+            <p><strong>Percent of portfolio:</strong> withdrawals rise and fall with your balance, so the money never runs out, but spending swings with the market.</p>
+          </div>
         </div>
-      </div>
-    </section>
-
-    <!-- ABOUT -->
-    <section class="panel" role="tabpanel" id="panel-about" aria-labelledby="tab-about" tabindex="0" hidden>
-      <div class="block about-intro">
-        <p class="kicker-line">The problem</p>
-        <p class="statement" id="statement">Only about a third of Americans work with a financial advisor, and the typical one charges about 1% of the money they manage, every year. The math behind a good plan should be free.</p>
-      </div>
-      <div class="block">
-        <div class="block-head">
-          <h2>What the case study found</h2>
-          <p class="sub">Four findings from three example clients, 10,000 simulations each. Every number regenerates from one script in the repository.</p>
-        </div>
-        <ol class="findings" id="findings"></ol>
-      </div>
-      <div class="block two-col">
-        <div class="col">
-          <h2>How it's built</h2>
-          <ul class="built">
-            <li><strong>Planning engine</strong> in Python and NumPy, with 41 unit tests against closed-form results.</li>
-            <li><strong>Browser engine</strong> in plain JavaScript. Parity tests prove it reproduces the Python engine to floating-point precision.</li>
-            <li><strong>Assumptions</strong> from J.P. Morgan and Vanguard 2026 capital market forecasts, the IRS, the SSA and Morningstar, all in one sourced file.</li>
-            <li><strong>Interface</strong> animated with GSAP and ScrollTrigger, smooth scrolling by Lenis, and components adapted from React Bits.</li>
-            <li><strong>Delivery</strong> through GitHub Actions: tests on every push, then automatic deployment to GitHub Pages.</li>
+        <div class="sheet chart-sheet">
+          <div class="block-head">
+            <h2 id="spend-chart-title">Yearly spending under guardrails</h2>
+            <p class="sub">Spending in today's dollars, including Social Security, across simulated markets.</p>
+          </div>
+          <div class="segmented" role="group" aria-label="Spending rule to chart" id="spend-rule-pick"></div>
+          <ul class="legend">
+            <li><span class="key-band b1"></span>80% of outcomes</li>
+            <li><span class="key-line"></span>Median</li>
+            <li><span class="key-line brass"></span>Your goal</li>
           </ul>
+          <div class="chart" id="spend-chart" tabindex="0" role="img" aria-label="Spending by age under the selected rule"></div>
         </div>
-        <div class="col">
-          <h2>Privacy</h2>
-          <p class="note">Everything runs in your browser. Nothing you type is sent anywhere or stored, and the page makes no network requests at all: its fonts and libraries are built into this one file.</p>
-          <h2 class="mt">Credits</h2>
-          <p class="note">GSAP by GreenSock (free standard license). Lenis by darkroom.engineering (MIT). Waves, SplitText, ScrollReveal and CountUp adapted from React Bits by David Haz (MIT + Commons Clause). Type set in Geist by Vercel and in Glidepath Serif, a renamed Latin subset of Adobe’s Source Serif 4 (both SIL Open Font License). Full notices are in THIRD_PARTY_NOTICES.md in the repository.</p>
-          <p class="note"><a href="https://github.com/saricgandhi-web/glidepath">Read the code, tests and case study on GitHub</a>.</p>
+      </section>
+
+      <!-- SOCIAL SECURITY -->
+      <section class="panel" role="tabpanel" id="panel-ss" aria-labelledby="tab-ss" tabindex="0" hidden>
+        <div class="sheet chart-sheet">
+          <div class="block-head">
+            <h2>When to claim Social Security</h2>
+            <p class="sub" id="ss-lead">Claiming later means a bigger check for life, but more years paid for by your portfolio first.</p>
+          </div>
+          <label class="check"><input type="checkbox" id="ss-stress"> <span>Also show the result if benefits are cut to 83% in 2034</span></label>
+          <ul class="legend">
+            <li><span class="key-line"></span>Chance your money lasts</li>
+            <li id="ss-legend-cut" hidden><span class="key-line brass"></span>With the 2034 cut</li>
+          </ul>
+          <div class="chart" id="ss-chart" tabindex="0" role="img" aria-label="Chance of success by Social Security claiming age"></div>
+          <div class="table-scroll"><table class="data-table" id="ss-table"></table></div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <!-- COMPARE -->
+      <section class="panel" role="tabpanel" id="panel-compare" aria-labelledby="tab-compare" tabindex="0" hidden>
+        <div class="block first">
+          <div class="block-head">
+            <h2>Plan A vs. Plan B</h2>
+            <p class="sub">Plan A is the plan above. Drag any Plan B number sideways to change it, or click it to type. Results update as you go.</p>
+          </div>
+          <div class="compare">
+            <form class="compare-form sheet" id="b-form" novalidate>
+              <div class="compare-odds">
+                <div><span class="co-label">Plan A</span><strong id="a-odds">&nbsp;</strong></div>
+                <div class="b"><span class="co-label">Plan B</span><strong id="b-odds">&nbsp;</strong></div>
+              </div>
+              <div class="scrub-list">
+                <div id="b-retire"></div>
+                <div id="b-rate"></div>
+                <div id="b-spend"></div>
+                <div id="b-eq"></div>
+                <div id="b-fee"></div>
+              </div>
+              <label class="field">Spending rule
+                <select id="b-rule"><option value="fixed">Fixed</option><option value="guardrails">Guardrails</option><option value="percent">Percent of portfolio</option></select>
+              </label>
+              <p class="hint">Hold Shift while dragging for bigger steps, Alt for smaller ones.</p>
+              <div class="form-actions">
+                <button class="button quiet" type="button" id="b-reset">Copy Plan A</button>
+                <button class="button" type="button" id="b-apply">Make Plan B my plan</button>
+              </div>
+              <p class="form-error" id="b-error" role="alert"></p>
+            </form>
+            <div class="compare-results">
+              <div class="table-scroll"><table class="compare-table" id="compare-table"></table></div>
+              <ul class="legend">
+                <li><span class="key-line"></span>Plan A median</li>
+                <li><span class="key-line brass"></span>Plan B median</li>
+              </ul>
+              <div class="chart" id="compare-chart" tabindex="0" role="img" aria-label="Median portfolio for Plan A and Plan B"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ASSUMPTIONS -->
+      <section class="panel" role="tabpanel" id="panel-assumptions" aria-labelledby="tab-assumptions" tabindex="0" hidden>
+        <div class="block first">
+          <div class="block-head">
+            <h2>Fine-tune the assumptions</h2>
+            <p class="sub">The defaults follow published 2026 research. Change anything that doesn't fit you. <a href="#/method">See every source</a>.</p>
+          </div>
+          <div class="settings">
+            <fieldset class="sheet">
+              <legend class="group">Social Security</legend>
+              <label class="field">Benefit in today's dollars per year
+                <input type="text" id="s-ss" inputmode="decimal" autocomplete="off">
+                <span class="hint" id="s-ss-hint"></span>
+              </label>
+              <label class="field">Claim at age
+                <select id="s-claim"></select>
+              </label>
+              <label class="check"><input type="checkbox" id="s-haircut">
+                <span>Stress test: benefits cut to 83% from 2034, when the trust funds are projected to run out</span></label>
+            </fieldset>
+            <fieldset class="sheet">
+              <legend class="group">Investments</legend>
+              <label class="field">Stocks today <output id="o-eq-now"></output>
+                <input type="range" id="s-eq-now" min="0" max="100" step="5">
+              </label>
+              <label class="field">Stocks at retirement <output id="o-eq-ret"></output>
+                <input type="range" id="s-eq-ret" min="0" max="100" step="5">
+              </label>
+              <div class="field">Market outlook
+                <div class="segmented" id="s-market" role="group" aria-label="Market outlook"></div>
+                <span class="hint" id="s-market-hint"></span>
+              </div>
+            </fieldset>
+            <fieldset class="sheet">
+              <legend class="group">Costs</legend>
+              <div class="segmented" id="s-fee-presets" role="group" aria-label="Fee presets"></div>
+              <label class="field">Advisory fee, % of assets per year
+                <input type="text" id="s-adv" inputmode="decimal" autocomplete="off">
+              </label>
+              <label class="field">Fund expense ratio, %
+                <input type="text" id="s-fund" inputmode="decimal" autocomplete="off">
+              </label>
+            </fieldset>
+            <fieldset class="sheet">
+              <legend class="group">Income and spending</legend>
+              <label class="field">Raises above inflation, % per year
+                <input type="text" id="s-growth" inputmode="decimal" autocomplete="off">
+              </label>
+              <label class="field">Default spending goal, % of final salary
+                <input type="text" id="s-replace" inputmode="decimal" autocomplete="off">
+                <span class="hint">Used until you type your own spending goal.</span>
+              </label>
+              <div class="field">Spending rule
+                <div class="segmented" id="s-rule" role="group" aria-label="Spending rule"></div>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </section>
+    </div>
   </div>
+</div>
+
+<!-- =============================================================== INSIGHTS -->
+<div class="page" id="page-insights" data-page="insights" hidden>
+  <section class="page-head band" aria-labelledby="insights-title">
+    <svg class="page-rosette"></svg>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="wrap">
+      <h1 id="insights-title" tabindex="-1">What 30,000 simulated retirements show</h1>
+      <p class="page-lede" data-enter>Three example clients, 10,000 simulated markets each, and four findings that hold up across them. Every number on this page regenerates from one script in the repository.</p>
+    </div>
+  </section>
+  <div class="wrap article-grid">
+    <nav class="toc" id="insights-toc" aria-label="On this page">
+      <button type="button" data-scroll-to="ch-clients">Three clients</button>
+      <button type="button" data-scroll-to="ch-waiting">Starting early</button>
+      <button type="button" data-scroll-to="ch-fees">Fees</button>
+      <button type="button" data-scroll-to="ch-outlook">Market outlook</button>
+      <button type="button" data-scroll-to="ch-ss">Social Security</button>
+    </nav>
+    <div class="article">
+      <section class="chapter" id="ch-clients" aria-labelledby="ch-clients-title">
+        <h2 id="ch-clients-title">Three clients, three different problems</h2>
+        <p>Each client is hypothetical but typical. The planner scores each one today, then solves for the savings rate and spending level that would reach 85% confidence.</p>
+        <div class="clients" id="clients"></div>
+      </section>
+      <section class="chapter" id="ch-waiting" aria-labelledby="ch-waiting-title">
+        <div class="chapter-lead">
+          <span class="chapter-figure" id="cf-waiting"></span>
+          <h2 id="ch-waiting-title">Starting early is the cheapest lever</h2>
+        </div>
+        <p id="cp-waiting"></p>
+        <div class="sheet chart-sheet"><div class="chart" id="ch-waiting-chart" tabindex="0" role="img"></div></div>
+      </section>
+      <section class="chapter" id="ch-fees" aria-labelledby="ch-fees-title">
+        <div class="chapter-lead">
+          <span class="chapter-figure" id="cf-fees"></span>
+          <h2 id="ch-fees-title">Fees compound against you</h2>
+        </div>
+        <p id="cp-fees"></p>
+        <div class="sheet chart-sheet"><div class="chart" id="ch-fees-chart" tabindex="0" role="img"></div></div>
+        <p class="note">Advice can be worth its cost when it changes behavior: saving more, staying invested in a downturn, making better tax decisions. Know the price, then weigh it against what the advice changes.</p>
+      </section>
+      <section class="chapter" id="ch-outlook" aria-labelledby="ch-outlook-title">
+        <div class="chapter-lead">
+          <span class="chapter-figure" id="cf-outlook"></span>
+          <h2 id="ch-outlook-title">Plan on the cautious outlook</h2>
+        </div>
+        <p id="cp-outlook"></p>
+        <div class="sheet chart-sheet"><div class="chart" id="ch-outlook-chart" tabindex="0" role="img"></div></div>
+      </section>
+      <section class="chapter" id="ch-ss" aria-labelledby="ch-ss-title">
+        <div class="chapter-lead">
+          <span class="chapter-figure" id="cf-ss"></span>
+          <h2 id="ch-ss-title">Social Security timing is a planning decision</h2>
+        </div>
+        <p id="cp-ss"></p>
+        <div class="sheet chart-sheet">
+          <ul class="legend">
+            <li><span class="key-line"></span>Benefits as scheduled</li>
+            <li><span class="key-line brass"></span>Benefits cut to 83% in 2034</li>
+          </ul>
+          <div class="chart" id="ch-ss-chart" tabindex="0" role="img"></div>
+        </div>
+      </section>
+      <p class="more"><a class="text-link" href="https://github.com/saricgandhi-web/glidepath/blob/main/docs/CASE_STUDY.md">Read the full case study on GitHub</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================================== METHOD -->
+<div class="page" id="page-method" data-page="method" hidden>
+  <section class="page-head band" aria-labelledby="method-title">
+    <svg class="page-rosette"></svg>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="wrap">
+      <h1 id="method-title" tabindex="-1">How the planner works</h1>
+      <p class="page-lede" data-enter>A plain-language tour of the model: where the numbers come from, what gets simulated, how the solvers find their answers and how the code is checked.</p>
+    </div>
+  </section>
+  <section class="section pipeline-section" aria-labelledby="pipeline-title">
+    <div class="wrap">
+      <h2 id="pipeline-title">From your sentence to your action plan</h2>
+      <ol class="pipeline" id="pipeline">
+        <li class="pipe-step"><h3>Your plan</h3><p>Age, savings, income, savings rate, retirement age, spending goal.</p></li>
+        <li class="pipe-link" aria-hidden="true"></li>
+        <li class="pipe-step"><h3>Cash flows</h3><p>Contributions while you work, then spending minus Social Security.</p></li>
+        <li class="pipe-link" aria-hidden="true"></li>
+        <li class="pipe-step"><h3>5,000 market paths</h3><p>Correlated stock and bond returns from institutional forecasts.</p></li>
+        <li class="pipe-link" aria-hidden="true"></li>
+        <li class="pipe-step"><h3>Probability of success</h3><p>The share of paths that pay every year of retirement.</p></li>
+        <li class="pipe-link" aria-hidden="true"></li>
+        <li class="pipe-step"><h3>Solvers and stress tests</h3><p>Exact levers to reach 85%, and what could go wrong.</p></li>
+      </ol>
+    </div>
+  </section>
+  <div class="wrap article-grid">
+    <nav class="toc" id="method-toc" aria-label="On this page">
+      <button type="button" data-scroll-to="m-returns">Returns</button>
+      <button type="button" data-scroll-to="m-cash">Cash flows</button>
+      <button type="button" data-scroll-to="m-rules">Spending rules</button>
+      <button type="button" data-scroll-to="m-ss">Social Security</button>
+      <button type="button" data-scroll-to="m-solvers">Solvers</button>
+      <button type="button" data-scroll-to="m-verify">Verification</button>
+      <button type="button" data-scroll-to="m-limits">Limits</button>
+      <button type="button" data-scroll-to="m-sources">Sources</button>
+    </nav>
+    <div class="article prose">
+      <section class="chapter" id="m-returns">
+        <h2>Returns</h2>
+        <p>Each simulated year draws a stock return and a bond return from correlated lognormal distributions. They're calibrated so the median equals the forecast compound return and the spread equals the forecast volatility. The base case uses J.P. Morgan's 2026 Long-Term Capital Market Assumptions: U.S. stocks <strong id="m-equity"></strong> and bonds <strong id="m-bond"></strong> a year, with inflation at <strong id="m-infl"></strong>. Vanguard's more cautious outlook is one click away.</p>
+        <p>Your mix of stocks and bonds glides from the share you hold today to the share you want at retirement. Fees come out of every year's return, and everything is converted to today's dollars, so a number on screen means what it buys now.</p>
+      </section>
+      <section class="chapter" id="m-cash">
+        <h2>Cash flows</h2>
+        <p>Your income grows a little faster than inflation until you retire, and you contribute your savings rate each year, including any employer match. In retirement, the portfolio pays whatever your spending goal needs beyond Social Security. A simulated lifetime succeeds if every one of those withdrawals is paid in full through your plan-to age.</p>
+      </section>
+      <section class="chapter" id="m-rules">
+        <h2>Spending rules</h2>
+        <p>Most retirees adjust when markets fall. The planner can model three ways of drawing down the same portfolio:</p>
+        <ul>
+          <li><strong>Fixed:</strong> the same real amount every year. The whole risk is running out.</li>
+          <li><strong>Guardrails:</strong> start at your goal; if your withdrawal rate drifts more than 20% above where it started, cut spending 10%, and if it drifts 20% below, raise it 10%. A simplified version of Guyton and Klinger (2006).</li>
+          <li><strong>Percent of portfolio:</strong> withdrawals rise and fall with your balance. The money can't run out, but income swings with the market.</li>
+        </ul>
+        <p>Because flexible rules trade running out for spending cuts, the planner also reports typical spending, the leanest year in a bad market and the chance of a year below 80% of your goal.</p>
+      </section>
+      <section class="chapter" id="m-ss">
+        <h2>Social Security</h2>
+        <p>Your benefit is estimated with the SSA's formula: average your highest 35 years of earnings, apply the 90%, 32% and 15% bend points, then adjust for the age you claim. Claiming at 62 cuts the benefit by up to 30%; waiting past 67 adds 8% a year until 70. Your statement at ssa.gov is more precise, and you can type it in.</p>
+        <p>An optional stress test cuts benefits to 83% from 2034, the share the 2026 Trustees Report projects will be payable once the trust funds run out.</p>
+      </section>
+      <section class="chapter" id="m-solvers">
+        <h2>Solvers and stress tests</h2>
+        <p>The three levers are solved by bisection on one fixed set of simulated markets, so the answer is exact: apply the suggested savings rate or spending level and you land on 85%. The earliest retirement age is found by stepping one year at a time.</p>
+        <p>The stress test reruns your plan under seven scenarios with the same random draws, so each change in your odds comes from the scenario alone: a crash in your first two retirement years, weaker markets, a Social Security cut, living to 100, losing your job three years early, 1% more in fees, and the three market risks together.</p>
+      </section>
+      <section class="chapter" id="m-verify">
+        <h2>Verification</h2>
+        <p>The planning engine is written twice: in Python for analysis and in JavaScript for this page. 41 Python unit tests check it against closed-form results (an annuity formula, a portfolio that should end at exactly zero, the SSA bend points). 12 parity tests then feed both engines the same market paths and require the JavaScript version to reproduce every balance to floating-point precision. Every change runs all of them on GitHub before the site deploys.</p>
+      </section>
+      <section class="chapter" id="m-limits">
+        <h2>Limits</h2>
+        <p>Not modeled yet: taxes and account types, pensions and annuities, home equity, health-care shocks and couples. Returns are independent from one year to the next, so the model doesn't capture momentum or long bear markets, and real crashes can be worse than the lognormal tails suggest. Treat the result as a well-informed estimate, not a promise.</p>
+      </section>
+      <section class="chapter" id="m-sources">
+        <h2>Sources</h2>
+        <div class="table-scroll">
+          <table class="sources" id="sources">
+            <thead><tr><th scope="col">Assumption</th><th scope="col">Value</th><th scope="col">Source</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================================== ABOUT -->
+<div class="page" id="page-about" data-page="about" hidden>
+  <section class="page-head band" aria-labelledby="about-title">
+    <svg class="page-rosette"></svg>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="wrap">
+      <h1 id="about-title" tabindex="-1">The math behind a good plan should be free.</h1>
+      <p class="page-lede" data-enter>Glidepath is an open-source project that puts the core of a financial plan, a probability-based answer with clear levers, in anyone's browser.</p>
+    </div>
+  </section>
+  <section class="section about-why">
+    <div class="wrap">
+      <p class="statement" id="about-statement">Advice is priced as a share of what you already have, so the people with the least to invest get the least help. Yet the heart of a retirement plan is a calculation, and a calculation can be shared.</p>
+    </div>
+  </section>
+  <section class="section about-grid-section">
+    <div class="wrap about-grid">
+      <div>
+        <h2>Private by design</h2>
+        <ul class="facts">
+          <li><strong>Runs in your browser.</strong> There's no server doing the math; your device does.</li>
+          <li><strong>Can't phone home.</strong> The page's security policy blocks every network request, and its fonts and code are built into this one file.</li>
+          <li><strong>Remembers nothing.</strong> No accounts, cookies or storage. Close the tab and your numbers are gone.</li>
+        </ul>
+      </div>
+      <div>
+        <h2>How it's built</h2>
+        <ul class="facts">
+          <li><strong>Planning engine</strong> in Python and NumPy, with 41 unit tests against closed-form results.</li>
+          <li><strong>Browser engine</strong> in plain JavaScript, proven by 12 parity tests to match the Python engine.</li>
+          <li><strong>Assumptions</strong> from J.P. Morgan, Vanguard, the IRS, the SSA and Morningstar, kept in one sourced file.</li>
+          <li><strong>Interface</strong> animated with GSAP, ScrollTrigger and SplitText, smooth-scrolled by Lenis, with components adapted from React Bits.</li>
+          <li><strong>Delivery</strong> through GitHub Actions: every change is linted and tested, then deployed to GitHub Pages.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <section class="section about-credits">
+    <div class="wrap about-grid">
+      <div>
+        <h2>Credits</h2>
+        <p class="note">GSAP by GreenSock (standard no-charge license). Lenis by darkroom.engineering (MIT). Waves, SplitText, ScrollReveal, CountUp, SplitFlapText, Counter, Magnet, SpotlightCard, ScrollVelocity, CircularText, ScrubField and StaggeredMenu adapted from React Bits by David Haz (MIT + Commons Clause). Type set in Geist by Vercel and in Glidepath Serif, a renamed Latin subset of Adobe’s Source Serif 4 (both SIL Open Font License). Full notices are in THIRD_PARTY_NOTICES.md in the repository.</p>
+        <p class="note"><a href="https://github.com/saricgandhi-web/glidepath">Read the code, tests and case study on GitHub</a>.</p>
+      </div>
+      <div>
+        <h2>Not financial advice</h2>
+        <p class="note">Glidepath is for education. Projected returns are estimates and don't guarantee future results. It doesn't know your taxes, insurance or the rest of your situation, so check important decisions with a qualified professional.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
 </main>
 
-<footer class="site-footer">
-  <div class="wrap">
-    <p>Glidepath is open source under the MIT license. <a href="https://github.com/saricgandhi-web/glidepath">See the code and methodology</a>.</p>
+<footer class="site-footer band">
+  <div class="grain" aria-hidden="true"></div>
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <a class="wordmark" href="#/">
+        <svg viewBox="0 0 28 20" aria-hidden="true" class="wordmark-mark"><path d="M1 17c6-1 10-8 26-14"/><path d="M1 19.5c7-.8 12-6 26-10" class="faint"/></svg>
+        Glidepath
+      </a>
+      <p>A free, open-source retirement planner that runs entirely in your browser.</p>
+    </div>
+    <nav aria-label="Planner views" class="footer-col">
+      <h2>Planner</h2>
+      <a href="#/planner">Overview</a>
+      <a href="#/planner/stress">Stress test</a>
+      <a href="#/planner/spending">Spending rules</a>
+      <a href="#/planner/social-security">Social Security</a>
+      <a href="#/planner/compare">Compare plans</a>
+    </nav>
+    <nav aria-label="Learn" class="footer-col">
+      <h2>Learn</h2>
+      <a href="#/insights">Insights</a>
+      <a href="#/method">How it works</a>
+      <a href="#/about">About</a>
+    </nav>
+    <nav aria-label="Project" class="footer-col">
+      <h2>Project</h2>
+      <a href="https://github.com/saricgandhi-web/glidepath">Source code</a>
+      <a href="https://github.com/saricgandhi-web/glidepath/blob/main/docs/CASE_STUDY.md">Case study</a>
+      <a href="https://github.com/saricgandhi-web/glidepath/blob/main/docs/METHODOLOGY.md">Methodology</a>
+    </nav>
+  </div>
+  <div class="wrap footer-fine">
     <p>For education only. Not investment, tax or legal advice. Projected returns are estimates and do not guarantee future results.</p>
+    <p>MIT license.</p>
   </div>
 </footer>
 
