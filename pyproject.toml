@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "open-wealth-planner"
+version = "1.0.0"
+description = "A free, transparent Monte Carlo retirement planning engine."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "saricgandhi-web" }]
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24"]
+keywords = ["retirement", "monte-carlo", "financial-planning", "wealth-management", "social-security"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+[project.optional-dependencies]
+analysis = ["matplotlib>=3.7"]
+dev = ["pytest>=8", "ruff>=0.6", "matplotlib>=3.7"]
+
+[project.scripts]
+open-wealth-planner = "planner.__main__:main"
+
+[project.urls]
+Homepage = "https://saricgandhi-web.github.io/open-wealth-planner/"
+Source = "https://github.com/saricgandhi-web/open-wealth-planner"
+
+[tool.setuptools]
+packages = ["planner"]
+
+[tool.setuptools.package-data]
+planner = ["data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = ["_site"]

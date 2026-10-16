@@ -1,0 +1,79 @@
+{
+  "as_of": "2026-10-16",
+  "notes": "All returns are nominal, annualized compound (geometric) returns over a 10-15 year horizon. The model converts them to real (inflation-adjusted) returns, so every dollar figure the planner shows is in today's dollars.",
+  "markets": {
+    "jpm_2026": {
+      "label": "Base case: J.P. Morgan 2026 LTCMA",
+      "equity_return": 0.067,
+      "bond_return": 0.048,
+      "equity_vol": 0.164,
+      "bond_vol": 0.064,
+      "correlation": 0.10,
+      "inflation": 0.025,
+      "sources": [
+        "J.P. Morgan Asset Management, 2026 Long-Term Capital Market Assumptions (data as of 2025-09-30): U.S. large cap 6.7%, U.S. aggregate bonds 4.8%, U.S. inflation 2.5%.",
+        "Volatility: Vanguard Capital Markets Model (2025-03-31 run): U.S. equities 16.4%, U.S. aggregate bonds 6.4% median volatility.",
+        "Stock-bond correlation of 0.10 is a project assumption; it is a user-adjustable input."
+      ]
+    },
+    "vanguard_2026": {
+      "label": "Conservative: Vanguard VCMM",
+      "equity_return": 0.052,
+      "bond_return": 0.043,
+      "equity_vol": 0.164,
+      "bond_vol": 0.064,
+      "correlation": 0.10,
+      "inflation": 0.025,
+      "sources": [
+        "Vanguard Capital Markets Model (2026-06-30 run): U.S. equities 4.2%-6.2% 10-year annualized; midpoint 5.2% used.",
+        "Vanguard 2026 Economic and Market Outlook: U.S. bonds 3.8%-4.8% 10-year annualized; midpoint 4.3% used.",
+        "Inflation held at 2.5% so the two cases differ only in expected returns."
+      ]
+    }
+  },
+  "fee_profiles": {
+    "diy_index": {
+      "label": "DIY index funds",
+      "advisory_fee": 0.0,
+      "fund_fee": 0.0005,
+      "source": "Broad-market index fund expense ratio of about 0.05%."
+    },
+    "robo": {
+      "label": "Robo-advisor",
+      "advisory_fee": 0.0025,
+      "fund_fee": 0.0010,
+      "source": "Typical digital-advice fee of 0.25% plus ETF expense ratios of about 0.10%."
+    },
+    "traditional": {
+      "label": "Traditional advisor (all-in)",
+      "advisory_fee": 0.0100,
+      "fund_fee": 0.0065,
+      "source": "Kitces Research 2024: median AUM fee of 1.00% on portfolios up to $1M. Inside Information (Bob Veres) via Kitces: all-in cost including underlying funds averages about 1.65%."
+    }
+  },
+  "contribution_limits_2026": {
+    "employee_401k": 24500,
+    "catch_up_50_plus": 8000,
+    "catch_up_60_to_63": 11250,
+    "ira": 7500,
+    "ira_catch_up_50_plus": 1100,
+    "source": "IRS, 2026 retirement plan limits (announced November 2025)."
+  },
+  "social_security": {
+    "bend_point_1": 1340,
+    "bend_point_2": 8077,
+    "taxable_maximum": 192300,
+    "full_retirement_age": 67,
+    "combined_trust_fund_depletion_year": 2034,
+    "payable_ratio_at_depletion": 0.83,
+    "sources": [
+      "SSA Office of the Chief Actuary: 2027 PIA formula bend points $1,340 and $8,077; 2027 contribution and benefit base $192,300.",
+      "2026 Social Security Trustees Report: combined OASDI reserves depleted in 2034, with 83% of scheduled benefits payable."
+    ]
+  },
+  "benchmarks": {
+    "morningstar_safe_withdrawal_rate": 0.039,
+    "morningstar_source": "Morningstar, The State of Retirement Income (December 2025): 3.9% highest safe starting withdrawal rate, 30 years, 90% success.",
+    "target_success_probability": 0.85
+  }
+}
