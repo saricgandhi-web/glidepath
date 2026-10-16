@@ -1,0 +1,190 @@
+{
+  "settings": {
+    "n_sims": 10000,
+    "target": 0.85,
+    "assumptions_as_of": "2026-10-16"
+  },
+  "clients": {
+    "maya": {
+      "success_probability": 0.6003,
+      "median_at_retirement": 1017250,
+      "p10_at_retirement": 594335,
+      "median_terminal": 305163,
+      "retirement_spending": 82926,
+      "social_security": 40884,
+      "sustained_withdrawal_rate": 0.0413,
+      "bridge_years": 2,
+      "mean_funded_ratio": 0.8637,
+      "median_depletion_age": 84.0,
+      "required_savings_rate": 0.1461181640625,
+      "max_spending": 68673.03432953083
+    },
+    "jordan": {
+      "success_probability": 0.0731,
+      "median_at_retirement": 869838,
+      "p10_at_retirement": 552149,
+      "median_terminal": 0,
+      "retirement_spending": 112098,
+      "social_security": 46189,
+      "sustained_withdrawal_rate": 0.0758,
+      "bridge_years": 2,
+      "mean_funded_ratio": 0.5138,
+      "median_depletion_age": 77.0,
+      "required_savings_rate": 0.4013671875,
+      "max_spending": 66284.70329097916
+    },
+    "lee": {
+      "success_probability": 0.5375,
+      "median_at_retirement": 1232575,
+      "p10_at_retirement": 869242,
+      "median_terminal": 114999,
+      "retirement_spending": 95000,
+      "social_security": 48079,
+      "sustained_withdrawal_rate": 0.0381,
+      "bridge_years": 5,
+      "mean_funded_ratio": 0.8635,
+      "median_depletion_age": 83.0,
+      "required_savings_rate": 0.359619140625,
+      "max_spending": 79274.90234375
+    }
+  },
+  "cost_of_waiting": {
+    "spending_goal": 82925.92824698062,
+    "rows": [
+      {
+        "start_age": 22,
+        "required_savings_rate": 0.14794921875
+      },
+      {
+        "start_age": 27,
+        "required_savings_rate": 0.1878662109375
+      },
+      {
+        "start_age": 32,
+        "required_savings_rate": 0.24609375
+      },
+      {
+        "start_age": 37,
+        "required_savings_rate": 0.3328857421875
+      },
+      {
+        "start_age": 42,
+        "required_savings_rate": 0.4515380859375
+      }
+    ],
+    "image": "images/cost_of_waiting.png"
+  },
+  "fees": {
+    "rows": [
+      {
+        "key": "diy_index",
+        "label": "DIY index funds",
+        "total_fee": 0.0005,
+        "success_probability": 0.3792,
+        "median_at_retirement": 1195017.5452354904,
+        "median_terminal": 0.0,
+        "cost_vs_lowest": 0.0
+      },
+      {
+        "key": "robo",
+        "label": "Robo-advisor",
+        "total_fee": 0.0035,
+        "success_probability": 0.3019,
+        "median_at_retirement": 1124787.507065994,
+        "median_terminal": 0.0,
+        "cost_vs_lowest": 70230.03816949646
+      },
+      {
+        "key": "traditional",
+        "label": "Traditional advisor (all-in)",
+        "total_fee": 0.0165,
+        "success_probability": 0.0731,
+        "median_at_retirement": 869838.045057039,
+        "median_terminal": 0.0,
+        "cost_vs_lowest": 325179.5001784514
+      }
+    ],
+    "one_percent_fee_share_lost": {
+      "20": 0.11305068993183409,
+      "30": 0.1712287498565307,
+      "40": 0.23034936791239036
+    },
+    "image": "images/fee_drag.png"
+  },
+  "outlook": {
+    "jpm_2026": {
+      "label": "Base case: J.P. Morgan 2026 LTCMA",
+      "success": 0.6003,
+      "required_savings_rate": 0.1461181640625,
+      "max_spending": 68673.03432953083
+    },
+    "vanguard_2026": {
+      "label": "Conservative: Vanguard VCMM",
+      "success": 0.2928,
+      "required_savings_rate": 0.2113037109375,
+      "max_spending": 59198.099168498855
+    }
+  },
+  "social_security": {
+    "rows": [
+      {
+        "claim_age": 62,
+        "success": 0.4744,
+        "success_with_haircut": 0.377,
+        "benefit": 33655.412756036196
+      },
+      {
+        "claim_age": 63,
+        "success": 0.4859,
+        "success_with_haircut": 0.3841,
+        "benefit": 36059.37081003879
+      },
+      {
+        "claim_age": 64,
+        "success": 0.494,
+        "success_with_haircut": 0.389,
+        "benefit": 38463.328864041374
+      },
+      {
+        "claim_age": 65,
+        "success": 0.5105,
+        "success_with_haircut": 0.4007,
+        "benefit": 41668.60626937816
+      },
+      {
+        "claim_age": 66,
+        "success": 0.5264,
+        "success_with_haircut": 0.4101,
+        "benefit": 44873.88367471493
+      },
+      {
+        "claim_age": 67,
+        "success": 0.5375,
+        "success_with_haircut": 0.4169,
+        "benefit": 48079.161080051716
+      },
+      {
+        "claim_age": 68,
+        "success": 0.5539,
+        "success_with_haircut": 0.4294,
+        "benefit": 51925.49396645586
+      },
+      {
+        "claim_age": 69,
+        "success": 0.5661,
+        "success_with_haircut": 0.4379,
+        "benefit": 55771.82685285999
+      },
+      {
+        "claim_age": 70,
+        "success": 0.574,
+        "success_with_haircut": 0.4432,
+        "benefit": 59618.15973926413
+      }
+    ],
+    "image": "images/social_security.png"
+  },
+  "images": {
+    "maya_fan": "images/maya_fan.png"
+  }
+}
