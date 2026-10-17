@@ -1,17 +1,21 @@
-// The planner page: the plan as a sentence, the answer, and six views of the same plan
-// (overview, stress test, spending rules, Social Security, Plan A vs. Plan B, assumptions).
+// The planner page: the plan as a sentence, the answer, and eight views of the same plan
+// (overview, stress test, spending rules, Social Security, Plan A vs. Plan B, two Pro views:
+// the odds map and the year-by-year plan, and assumptions).
 import {
   DEFAULTS, atRetirement, buildPlan, claimingAdjustment, estimateAnnualBenefit, lowSpending,
   makeInputs, medianSpending, percentile, percentilePaths, retirementSpending, shortfallProbability, simulate,
-  spendingPercentiles, sustainedWithdrawalRate,
+  simulateReturns, spendingPercentiles, sustainedWithdrawalRate,
 } from "./engine.js";
 import {
   $, A, FEE_NAMES, MINUS, RB, RULE_NAMES, ST, TARGET, animate, compact, drawChart, el, gsap, growBars, hideTip,
   money, nextFrame, parseAge, parseMoney, parsePercent, pct, percentOrNA, pts, scrollToY, statusFor, statusIcon, words,
 } from "./ui.js";
+import { PRO_FEATURES, isPro, lockPreview, onProChange } from "./pro.js";
 
-export const VIEWS = ["overview", "stress", "spending", "ss", "compare", "assumptions"];
-const SLUGS = { overview: "", stress: "stress", spending: "spending", ss: "social-security", compare: "compare", assumptions: "assumptions" };
+export const VIEWS = ["overview", "stress", "spending", "ss", "compare", "map", "years", "assumptions"];
+const SLUGS = { overview: "", stress: "stress", spending: "spending", ss: "social-security", compare: "compare",
+  map: "odds-map", years: "year-by-year", assumptions: "assumptions" };
+const PRO_VIEWS = new Set(["map", "years"]);
 export const viewFromSlug = (slug) => VIEWS.find((v) => SLUGS[v] === (slug || "")) || null;
 export const hrefFor = (view) => "#/planner" + (SLUGS[view] ? "/" + SLUGS[view] : "");
 
@@ -638,6 +642,274 @@ async function renderCompare(id, firstTime) {
 }
 
 // =====================================================================================
+// Pro views (demo): locked previews until Pro is on
+// =====================================================================================
+function syncLocks() {
+  const on = isPro();
+  for (const v of PRO_VIEWS) {
+    const lock = $(`lock-${v}`), body = $(`pro-${v}`);
+    if (!lock || !body) continue;
+    if (!on && !lock.firstChild) {
+      const f = PRO_FEATURES[v];
+      const card = el("div", { class: "lock-card" });
+      const icon = el("span", { class: "lock-icon", "aria-hidden": "true" });
+      icon.innerHTML = '<svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>';
+      const actions = el("div", { class: "lock-actions" });
+      actions.append(el("button", { type: "button", class: "button brass", "data-unlock-pro": v }, "Unlock Pro (demo)"),
+        el("a", { class: "button ghost", href: "#/pricing" }, "See pricing"));
+      card.append(icon, el("h2", {}, `${f.name} is part of Pro`), el("p", {}, f.text), actions,
+        el("p", { class: "lock-fine" }, "Demo only: Glidepath never asks for payment details and nothing is charged."));
+      lock.append(lockPreview(v), card);
+    }
+    lock.hidden = on;
+    body.hidden = !on;
+  }
+  document.querySelectorAll(".viewnav .pro-pill").forEach((n) => n.classList.toggle("is-on", on));
+}
+
+// ---------- Odds map: retirement age x savings rate ----------
+// Each column reuses one matrix of simulated returns (they depend on the retirement age through the
+// glide path, not on the savings rate), and the seed matches the main run, so the cell for your
+// current plan shows exactly the headline number.
+// Cells are judged on the whole percent they show, so a square labeled 85 sits inside the 85% line.
+const HEAT = [0, 40, 55, 70, 80, 85, 92];
+const shown = (p) => Math.round(p * 100);
+const reaches = (p) => shown(p) >= Math.round(TARGET * 100);
+const heatStep = (p) => { let k = 0; HEAT.forEach((t, i) => { if (shown(p) >= t) k = i; }); return k; };
+let mapPick = null, mapNarrow = null;
+// Eleven retirement ages on wide screens, seven on phones, so every column fits without scrolling.
+const isNarrowMap = () => (($("panel-map")?.clientWidth || $("planner-body")?.clientWidth || 800) < 600);
+function mapAxes(span) {
+  const want = 2 * span + 1;
+  const cols = [];
+  for (let a = state.retirement_age - span; a <= state.retirement_age + span; a++) if (a > state.current_age && a < state.plan_to_age) cols.push(a);
+  let lo = cols[0], hi = cols.at(-1);
+  while (cols.length < want && hi + 1 < state.plan_to_age) cols.push(++hi);
+  while (cols.length < want && lo - 1 > state.current_age) cols.unshift(--lo);
+  const rows = [];
+  for (let k = 6; k >= -4; k--) {
+    const r = Math.round((state.savings_rate + k * 0.025) * 1000) / 1000;
+    if (r >= 0 && r <= 0.75) rows.push(r);
+  }
+  return { cols, rows };
+}
+function describeMap(grid, cols, rows) {
+  const ci = cols.indexOf(state.retirement_age), ri = rows.indexOf(Math.round(state.savings_rate * 1000) / 1000);
+  const total = grid.flat().filter(reaches).length;
+  const parts = [`${total} of the ${cols.length * rows.length} combinations reach ${pct(TARGET)}.`];
+  const p0 = grid[ri]?.[ci];
+  if (reaches(p0)) {
+    let early = null;
+    for (let c = 0; c <= ci; c++) if (reaches(grid[ri][c])) { early = cols[c]; break; }
+    parts.push(`Your plan is one of them${early !== null && early < state.retirement_age ? `; at your savings rate you could retire as early as ${early}` : ""}.`);
+  } else {
+    let age = null, rate = null;
+    for (let c = ci; c < cols.length; c++) if (reaches(grid[ri][c])) { age = cols[c]; break; }
+    for (let r = ri; r >= 0; r--) if (reaches(grid[r][ci])) { rate = rows[r]; break; }
+    if (rate !== null) parts.push(`At ${state.retirement_age}, saving ${pct(rate, 1)} gets there.`);
+    if (age !== null) parts.push(`At your current savings rate, retiring at ${age} does.`);
+    if (rate === null && age === null) parts.push("Nothing in this range gets there without spending less. Try the spending lever on the Overview.");
+  }
+  return parts.join(" ");
+}
+function showPick(cell) {
+  const bar = $("map-pick");
+  bar.textContent = "";
+  if (!cell) { bar.append(el("span", { class: "map-pick-hint" }, "Point at or select a square to read it.")); return; }
+  const { age, rate, p } = cell;
+  const isCurrent = age === state.retirement_age && Math.abs(rate - state.savings_rate) < 1e-9;
+  const text = el("span", { class: "map-pick-text" });
+  text.append(el("strong", {}, pct(p)), ` chance the money lasts if you retire at ${age} and save ${pct(rate, 1)} of income`);
+  bar.append(text);
+  if (isCurrent) bar.append(el("span", { class: "map-pick-tag" }, "Your plan"));
+  else {
+    const b = el("button", { type: "button", class: "button small" }, "Use this plan");
+    b.addEventListener("click", () => {
+      spendingExplicit = true;
+      state.retirement_spending = current.res.spending;
+      state.retirement_age = age;
+      state.savings_rate = rate;
+      fillStory();
+      schedule(0);
+    });
+    bar.append(b);
+  }
+}
+async function renderMap(id, firstTime) {
+  const inp = current.inp, spend = current.res.spending;
+  mapNarrow = isNarrowMap();
+  const { cols, rows } = mapAxes(mapNarrow ? 3 : 5);
+  const table = $("odds-table");
+  table.textContent = "";
+  table.classList.toggle("is-narrow", mapNarrow);
+  table.append(el("caption", { class: "visually-hidden" }, "Chance the money lasts, by savings rate (rows) and retirement age (columns)"));
+  const thead = el("thead"), hr = el("tr");
+  hr.append(el("th", { scope: "col", class: "corner" }, "Save"));
+  cols.forEach((a) => hr.append(el("th", { scope: "col", class: a === state.retirement_age ? "is-current" : null }, String(a))));
+  thead.append(hr);
+  const tbody = el("tbody");
+  const cells = rows.map((r) => {
+    const tr = el("tr");
+    const isRow = Math.abs(r - state.savings_rate) < 1e-9;
+    tr.append(el("th", { scope: "row", class: isRow ? "is-current" : null }, pct(r, 1)));
+    const out = cols.map((a) => {
+      const td = el("td");
+      const b = el("button", { type: "button", class: "odds-cell is-pending", tabindex: "-1", "aria-label": `Retire at ${a}, save ${pct(r, 1)}: calculating` });
+      if (isRow && a === state.retirement_age) td.classList.add("is-current");
+      td.append(b);
+      tr.append(td);
+      return { td, b, age: a, rate: r, p: null };
+    });
+    tbody.append(tr);
+    return out;
+  });
+  table.append(thead, tbody);
+  $("map-lead").textContent = "Running every combination…";
+  showPick(null);
+  const grid = rows.map(() => cols.map(() => null));
+  for (let c = 0; c < cols.length; c++) {
+    await nextFrame();
+    if (id !== runId) return false;
+    const colInp = makeInputs({ ...inp, retirement_age: cols[c], retirement_spending: spend });
+    const R = simulateReturns(colInp, A);
+    const filled = [];
+    rows.forEach((r, k) => {
+      const p = simulate(makeInputs({ ...colInp, savings_rate: r }), A, R).successProbability;
+      grid[k][c] = p;
+      const cell = cells[k][c];
+      cell.p = p;
+      cell.b.textContent = String(shown(p));
+      cell.b.dataset.step = String(heatStep(p));
+      cell.b.classList.remove("is-pending");
+      cell.b.setAttribute("aria-label", `Retire at ${cols[c]}, save ${pct(r, 1)}: ${pct(p)} chance the money lasts`);
+      filled.push(cell.b);
+    });
+    if (animate && firstTime) gsap.fromTo(filled, { scale: 0.7, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.35, ease: "back.out(1.6)", stagger: 0.012 });
+  }
+  if (id !== runId) return false;
+  // The 85% line: an edge wherever a cell that reaches the target meets one that doesn't.
+  rows.forEach((_, k) => cols.forEach((__, c) => {
+    if (!reaches(grid[k][c])) return;
+    const td = cells[k][c].td;
+    if (c > 0 && !reaches(grid[k][c - 1])) td.classList.add("edge-l");
+    if (c < cols.length - 1 && !reaches(grid[k][c + 1])) td.classList.add("edge-r");
+    if (k > 0 && !reaches(grid[k - 1][c])) td.classList.add("edge-t");
+    if (k < rows.length - 1 && !reaches(grid[k + 1][c])) td.classList.add("edge-b");
+  }));
+  $("map-lead").textContent = describeMap(grid, cols, rows);
+  // Roving focus: one tab stop, arrow keys move between squares.
+  const flat = cells.flat();
+  const start = flat.find((x) => x.td.classList.contains("is-current")) || flat[0];
+  start.b.tabIndex = 0;
+  for (const cell of flat) {
+    const pick = () => { mapPick = cell; showPick(cell); };
+    cell.b.addEventListener("pointerenter", pick);
+    cell.b.addEventListener("focus", pick);
+    cell.b.addEventListener("click", pick);
+  }
+  table.onkeydown = (e) => {
+    const moves = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+    const m = moves[e.key];
+    const at = flat.findIndex((x) => x.b === document.activeElement);
+    if (!m || at < 0) return;
+    e.preventDefault();
+    const k = Math.floor(at / cols.length), c = at % cols.length;
+    const nk = Math.min(rows.length - 1, Math.max(0, k + m[0])), nc = Math.min(cols.length - 1, Math.max(0, c + m[1]));
+    const next = cells[nk][nc];
+    flat.forEach((x) => { x.b.tabIndex = -1; });
+    next.b.tabIndex = 0;
+    next.b.focus();
+  };
+  table.onpointerleave = () => showPick(mapPick && cells.flat().includes(mapPick) ? mapPick : null);
+  mapPick = null;
+  return true;
+}
+
+// ---------- Year-by-year plan ----------
+let yearRows = [];
+function yearData(res) {
+  const n = res.success.length;
+  const depl = Array.from(res.depletionAge).filter((x) => !Number.isNaN(x)).sort((a, b) => a - b);
+  const W = state.retirement_age - state.current_age;
+  const rows = [];
+  let j = 0;
+  for (let t = 0; t < res.contributions.length; t++) {
+    const age = state.current_age + t;
+    while (j < depl.length && depl[j] <= age) j++;
+    const bal = Float64Array.from(res.balances[t]).sort();
+    const q = (p) => { const x = (p / 100) * (n - 1), lo = Math.floor(x), hi = Math.ceil(x); return bal[lo] + (bal[hi] - bal[lo]) * (x - lo); };
+    const retired = t >= W;
+    let spend = null;
+    if (retired) {
+      const col = new Float64Array(n);
+      for (let i = 0; i < n; i++) col[i] = res.spendingPaths[i][t];
+      spend = percentile(col, 50);
+    }
+    rows.push({
+      age, year: state.start_year + t, retired, contribution: res.contributions[t], ss: res.socialSecurity[t], spend,
+      p10: q(10), p50: q(50), p90: q(90), lasts: 1 - j / n,
+    });
+  }
+  return rows;
+}
+async function renderYears(id) {
+  await nextFrame();
+  if (id !== runId) return false;
+  const rows = yearData(current.res);
+  yearRows = rows;
+  const table = $("years-table");
+  table.textContent = "";
+  const thead = el("thead");
+  const h1 = el("tr"), h2 = el("tr");
+  h1.append(el("th", { scope: "col", rowspan: "2" }, "Age"), el("th", { scope: "col", rowspan: "2" }, "Year"),
+    el("th", { scope: "col", rowspan: "2" }, "You save"), el("th", { scope: "col", rowspan: "2" }, "Social Security"),
+    el("th", { scope: "col", rowspan: "2" }, "You spend (median)"),
+    el("th", { scope: "colgroup", colspan: "3", class: "group" }, "Portfolio at the start of the year"),
+    el("th", { scope: "col", rowspan: "2" }, "Money lasts this far"));
+  h2.append(el("th", { scope: "col" }, "Bad market"), el("th", { scope: "col" }, "Median"), el("th", { scope: "col" }, "Good market"));
+  thead.append(h1, h2);
+  const tbody = el("tbody");
+  const dash = "–";
+  for (const r of rows) {
+    const tr = el("tr", { class: r.age === state.retirement_age ? "retire-row" : r.retired ? "retired" : null });
+    tr.append(el("th", { scope: "row" }, r.age === state.retirement_age ? `${r.age} (retire)` : String(r.age)), el("td", {}, String(r.year)),
+      el("td", {}, r.contribution > 0.5 ? money(r.contribution) : dash), el("td", {}, r.ss > 0.5 ? money(r.ss) : dash),
+      el("td", {}, r.spend === null ? dash : money(r.spend)),
+      el("td", {}, money(r.p10)), el("td", { class: "strong" }, money(r.p50)), el("td", {}, money(r.p90)),
+      el("td", { class: r.lasts < TARGET ? "warn" : null }, pct(r.lasts)));
+    tbody.append(tr);
+  }
+  table.append(thead, tbody);
+  const peak = rows.reduce((m, r) => (r.p50 > m.p50 ? r : m), rows[0]);
+  const last = rows.at(-1);
+  $("years-lead").textContent = `${rows.length} years, from age ${rows[0].age} to ${last.age}, in today's dollars. The median portfolio peaks at ${words(peak.p50)} at age ${peak.age}, and ${pct(last.lasts)} of simulated markets still have money in the final year.`;
+  return true;
+}
+function downloadYears() {
+  if (!yearRows.length) return;
+  const head = ["Age", "Year", "You save", "Social Security", "You spend (median)", "Portfolio, bad market (10th percentile)",
+    "Portfolio, median", "Portfolio, good market (90th percentile)", "Chance the money lasts to this age"];
+  // RFC 4180: quote any field with a comma, quote or line break.
+  const field = (v) => { const t = String(v); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+  const line = (cells) => cells.map(field).join(",");
+  const lines = [line([`Glidepath plan in today's dollars: retire at ${state.retirement_age}, save ${pct(state.savings_rate, 1)}, spend ${money(current.res.spending)} a year. For education only.`]), line(head)];
+  for (const r of yearRows) {
+    lines.push(line([r.age, r.year, Math.round(r.contribution), Math.round(r.ss), r.spend === null ? "" : Math.round(r.spend),
+      Math.round(r.p10), Math.round(r.p50), Math.round(r.p90), r.lasts.toFixed(4)]));
+  }
+  const blob = new Blob([lines.join("\r\n") + "\r\n"], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = el("a", { href: url, download: `glidepath-plan-retire-${state.retirement_age}.csv` });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  const s = $("years-status");
+  s.textContent = "Downloaded.";
+  setTimeout(() => { s.textContent = ""; }, 3000);
+}
+
+// =====================================================================================
 // Views (sidebar on wide screens, a scrolling bar of pills on narrow ones)
 // =====================================================================================
 let navigate = (view) => { location.hash = hrefFor(view); };
@@ -683,6 +955,13 @@ function selectView(name, { focus = false, initial = false } = {}) {
 }
 
 async function renderView(name, id) {
+  if (PRO_VIEWS.has(name)) {
+    syncLocks();
+    if (!isPro()) {
+      if (id === runId && !inflight.size) document.body.classList.remove("updating");
+      return;
+    }
+  }
   if (!dirty.has(name) || !current.res) {
     if (id === runId && !inflight.size) document.body.classList.remove("updating");
     return;
@@ -698,6 +977,8 @@ async function renderView(name, id) {
     else if (name === "spending") done = await renderSpending(id, firstTime);
     else if (name === "ss") done = await renderSS(id, firstTime);
     else if (name === "compare") done = await renderCompare(id, firstTime);
+    else if (name === "map") done = await renderMap(id, firstTime);
+    else if (name === "years") done = await renderYears(id);
   } catch (err) {
     console.error(err);
   }
@@ -767,6 +1048,12 @@ function init(nav) {
     });
   });
   $("ss-stress").addEventListener("change", (e) => { ssShowCut = e.target.checked; dirty.add("ss"); renderView("ss", runId); });
+  $("years-download").addEventListener("click", downloadYears);
+  syncLocks();
+  onProChange(() => {
+    syncLocks();
+    if (PRO_VIEWS.has(activeView)) renderView(activeView, runId);
+  });
   $("print-plan")?.addEventListener("click", () => window.print());
   window.addEventListener("beforeprint", () => { document.querySelectorAll(".chart").forEach(hideTip); document.activeElement?.blur?.(); });
   $("print-date").textContent = "Plan prepared " + new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -786,6 +1073,7 @@ export const planner = {
   resize() {
     if (!ready) return;
     moveIndicator(true);
+    if (activeView === "map" && isPro() && mapNarrow !== null && mapNarrow !== isNarrowMap()) { dirty.add("map"); renderView("map", runId); }
     for (const f of Object.values(story)) autosize(f.el);
   },
   get view() { return activeView; },

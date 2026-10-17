@@ -124,6 +124,15 @@ The savings and spending solvers reuse one matrix of simulated returns (common r
 draws held fixed, success can only rise as savings rise or spending falls, so bisection converges to a
 clean boundary, and applying the solved value in the app lands exactly on the target.
 
+### Odds map (web app, Pro demo)
+
+The odds map runs the plan for each combination of retirement age (your age ±5 years; ±3 on phones)
+and savings rate (2.5-point steps around yours), holding the spending goal at its current dollar amount.
+Simulated returns depend on the retirement age through the glide path but not on the savings rate,
+so each column reuses one return matrix drawn from the same seed as the main run. The square for your
+current plan therefore matches the headline probability exactly, and differences between squares come
+from the two choices alone. Squares are compared with the target on the whole percent they display.
+
 ## 7. Stress tests
 
 The web app reruns the plan under seven scenarios with the same random draws, so each change in the

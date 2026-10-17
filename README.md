@@ -37,7 +37,8 @@ run out of money, and what should I change? That computation should be free, tra
 | **Goal-seek solvers** | Bisection on common random numbers finds the exact savings rate, sustainable spending and earliest retirement age for a target probability of success. |
 | **Spending rules** | Fixed spending, Guyton-Klinger style guardrails, or a percent of the portfolio, with metrics for lean years and deep cuts, not just the chance of running out. |
 | **Social Security estimator** | The SSA's 90/32/15 PIA formula with bend points, taxable maximum, 35-year averaging and early/delayed claiming adjustments, plus a trust-fund depletion stress test. |
-| **Website** | A five-page site built around a browser port of the engine: a home page with a live demo, the planner with six views, an interactive case study, a methodology tour and an about page. Animated with GSAP, Lenis smooth scrolling and React Bits components. One self-contained file: no tracking, no network requests. |
+| **Website** | A six-page site built around a browser port of the engine: a home page with a live demo, the planner with eight views, an interactive case study, a methodology tour and an about page. Animated with GSAP, Lenis smooth scrolling and React Bits components. One self-contained file: no tracking, no network requests. |
+| **Business model (demo)** | A freemium pricing page and demo checkout: the planner stays free, and two Pro tools (an odds map and a year-by-year plan with a spreadsheet download) cost a flat $48 a year instead of a percentage of savings. No payment is ever taken. |
 | **Case study** | A consulting-style analysis of three hypothetical clients with four quantified findings. Every number regenerates from one script. |
 | **Verification** | 41 Python unit tests against closed-form results, plus 12 parity tests proving the JavaScript engine reproduces the Python engine. CI runs on every push. |
 
@@ -46,9 +47,10 @@ run out of money, and what should I change? That computation should be free, tra
 | Page | What's on it |
 |---|---|
 | **Home** | A live example on a split-flap board (drag the retirement age and watch the odds and the fan chart change), the advice gap in numbers, six advisor questions answered on a scroll-driven card track, a pinned walkthrough that draws real simulated lifetimes as you scroll, the case-study findings and an FAQ. |
-| **Planner** | Type your situation into one sentence and the answer updates as you go. Six views take it apart the way an advisor would in a planning meeting (table below). |
+| **Planner** | Type your situation into one sentence and the answer updates as you go. Eight views take it apart the way an advisor would in a planning meeting (table below). |
 | **Insights** | The case study as an interactive article: three example clients and four findings, each with its chart. |
 | **How it works** | The model in plain language, from return assumptions to solvers and tests, with a source for every number. |
+| **Pricing** | A demo of a freemium model: Free vs. Pro, monthly or yearly billing, a comparison with percentage-of-assets fees, and a demo checkout that asks for no payment details. |
 | **About** | Why the project exists, privacy guarantees, how it's built and credits. |
 
 ![The planner](docs/images/planner.jpg)
@@ -60,6 +62,8 @@ run out of money, and what should I change? That computation should be free, tra
 | **Spending rules** | Fixed spending vs. guardrails vs. percent of portfolio, side by side, with the range of income each one produces year by year. |
 | **Social Security** | Your chance of success for every claiming age from 62 to 70, with or without the 2034 benefit cut. |
 | **Compare plans** | Build a Plan B by dragging its numbers (retire later, save more, spend less, change the stock mix, fees or rule) and see every metric and the median path next to Plan A. |
+| **Odds map** (Pro) | A sensitivity table of your chance of success for every combination of retirement age and savings rate, with the 85% line drawn on. Click a square to adopt that plan. |
+| **Year by year** (Pro) | Every year of the plan: contributions, Social Security, median spending, the portfolio in bad, median and good markets, and the share of markets where the money has lasted so far. Downloads as a CSV. |
 | **Assumptions** | The market outlook, fees, Social Security and glide path behind the plan, all editable. |
 
 Every page and view has its own link, such as `#/planner/stress` or `#/insights`.
@@ -158,6 +162,7 @@ planner/                 Python planning engine
 web/                     browser app
   engine.js              JavaScript port of the engine, verified against Python
   site.js                routing, header, menu and page transitions
+  pro.js                 the demo Pro tier: pricing page, locks and demo checkout
   home.js, planner.js    the home page and the planner
   pages.js, ui.js        Insights, How it works, About; shared charts and helpers
   vendor/                GSAP, Lenis and React Bits ports (see THIRD_PARTY_NOTICES.md)
@@ -174,6 +179,8 @@ scripts/                 site bundler and parity fixture generator
 - The page ships with a strict Content Security Policy that blocks all network requests. Fonts and
   libraries are bundled into the page, so nothing loads from a CDN.
 - The repository contains no API keys, credentials or personal data, and needs none to run.
+- The Pro tier is a demo. Its checkout has no payment fields, charges nothing, and Pro lasts only until
+  the tab is reloaded or closed.
 - GitHub Actions are pinned to exact commit SHAs, and Dependabot keeps them up to date.
 
 ## Built with

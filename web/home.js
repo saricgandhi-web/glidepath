@@ -363,8 +363,10 @@ function buildFindings() {
 // =====================================================================================
 // FAQ: details elements that open and close with a height animation
 // =====================================================================================
-function initFaq() {
+export function initFaq() {
   document.querySelectorAll(".faq-item").forEach((d) => {
+    if (d.dataset.faq) return;
+    d.dataset.faq = "1";
     const summary = d.querySelector("summary"), body = d.querySelector(".faq-body");
     summary.addEventListener("click", (e) => {
       if (!animate) return;
@@ -459,7 +461,6 @@ function init() {
   buildStage();
   initRibbon();
   buildFindings();
-  initFaq();
   if (RB.circularText) RB.circularText($("seal"), { text: "FREE AND OPEN SOURCE ✦ RUNS IN YOUR BROWSER ✦ ", spinDuration: 28, onHover: "speedUp", draggable: true, label: "Free and open source. Runs in your browser." });
   document.querySelectorAll("[data-scroll-to]").forEach((b) => b.addEventListener("click", () => scrollToEl($(b.dataset.scrollTo), 0)));
   document.querySelectorAll(".q-card").forEach((card) => RB.spotlight?.(card, { color: "#d6ae52", intensity: 0.14, size: 320, borderGlow: 0.8, proximity: 120 }));

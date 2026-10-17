@@ -24,7 +24,7 @@ ASSUMPTIONS = ROOT / "planner" / "data" / "assumptions.json"
 CASE_STUDY = ROOT / "docs" / "results.json"
 VENDOR = ["gsap.min.js", "ScrollTrigger.min.js", "SplitText.min.js", "lenis.js", "rb-waves.js", "rb-text.js", "rb-ui.js"]
 # ES modules in dependency order; each one only imports from modules listed before it.
-MODULES = ["engine.js", "ui.js", "planner.js", "home.js", "pages.js", "site.js"]
+MODULES = ["engine.js", "ui.js", "pro.js", "planner.js", "home.js", "pages.js", "site.js"]
 CASE_KEYS = ("clients", "cost_of_waiting", "fees", "outlook", "social_security")
 FONT_URL = re.compile(r'url\("fonts/([^"]+\.woff)"\)')
 

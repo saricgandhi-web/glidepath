@@ -20,10 +20,12 @@
       <svg viewBox="0 0 28 20" aria-hidden="true" class="wordmark-mark"><path d="M1 17c6-1 10-8 26-14"/><path d="M1 19.5c7-.8 12-6 26-10" class="faint"/></svg>
       Glidepath
     </a>
+    <a class="pro-badge" id="pro-badge" href="#/pricing" hidden title="Pro is on for this visit (demo)">Pro</a>
     <nav class="site-nav" aria-label="Main">
       <a href="#/planner" data-route-link="planner">Planner</a>
       <a href="#/insights" data-route-link="insights">Insights</a>
       <a href="#/method" data-route-link="method">How it works</a>
+      <a href="#/pricing" data-route-link="pricing">Pricing</a>
       <a href="#/about" data-route-link="about">About</a>
       <span class="nav-indicator" id="nav-indicator" aria-hidden="true"></span>
     </nav>
@@ -49,6 +51,7 @@
       <li class="sm-panel-item"><a class="sm-panel-link" href="#/planner" data-route-link="planner"><span class="sm-panel-itemLabel">Planner</span></a></li>
       <li class="sm-panel-item"><a class="sm-panel-link" href="#/insights" data-route-link="insights"><span class="sm-panel-itemLabel">Insights</span></a></li>
       <li class="sm-panel-item"><a class="sm-panel-link" href="#/method" data-route-link="method"><span class="sm-panel-itemLabel">How it works</span></a></li>
+      <li class="sm-panel-item"><a class="sm-panel-link" href="#/pricing" data-route-link="pricing"><span class="sm-panel-itemLabel">Pricing</span></a></li>
       <li class="sm-panel-item"><a class="sm-panel-link" href="#/about" data-route-link="about"><span class="sm-panel-itemLabel">About</span></a></li>
     </ul>
     <div class="sm-extra">
@@ -233,7 +236,7 @@
       <div class="faq-list">
         <details class="faq-item">
           <summary>Is Glidepath really free?</summary>
-          <div class="faq-body"><p>Yes. There's no account, no ads and nothing to upgrade to. The code is open source under the MIT license, so anyone can read it, check it or reuse it.</p></div>
+          <div class="faq-body"><p>Yes. The planner, stress tests and case study are free, with no account and no ads. The Pricing page shows a demo Pro tier, an exercise in how the project could pay for itself; it never asks for payment details and never charges anything. The code is open source under the MIT license.</p></div>
         </details>
         <details class="faq-item">
           <summary>Does it store or send what I type?</summary>
@@ -316,6 +319,10 @@
           <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 2" class="thin"/></svg>Social Security</button>
         <button role="tab" id="tab-compare" aria-controls="panel-compare" data-view="compare">
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 15c3-1 5-6 14-10"/><path d="M3 17c4-1 7-4 14-6" class="thin"/></svg>Compare plans</button>
+        <button role="tab" id="tab-map" aria-controls="panel-map" data-view="map">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1" class="thin"/><rect x="3" y="11" width="6" height="6" rx="1" class="thin"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg>Odds map<span class="pro-pill">Pro</span></button>
+        <button role="tab" id="tab-years" aria-controls="panel-years" data-view="years">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4h14M3 8h14M3 12h14M3 16h14" class="thin"/><path d="M7 4v12"/></svg>Year by year<span class="pro-pill">Pro</span></button>
         <button role="tab" id="tab-assumptions" aria-controls="panel-assumptions" data-view="assumptions">
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5h12M4 10h12M4 15h12"/><circle cx="8" cy="5" r="1.6" class="dot"/><circle cx="13" cy="10" r="1.6" class="dot"/><circle cx="6" cy="15" r="1.6" class="dot"/></svg>Assumptions</button>
         <span class="viewnav-indicator" id="viewnav-indicator" aria-hidden="true"></span>
@@ -490,6 +497,58 @@
               </ul>
               <div class="chart" id="compare-chart" tabindex="0" role="img" aria-label="Median portfolio for Plan A and Plan B"></div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ODDS MAP (Pro) -->
+      <section class="panel" role="tabpanel" id="panel-map" aria-labelledby="tab-map" tabindex="0" hidden>
+        <div class="pro-lock" id="lock-map"></div>
+        <div class="pro-body" id="pro-map" hidden>
+          <div class="sheet chart-sheet">
+            <div class="block-head">
+              <h2>Odds map</h2>
+              <p class="sub" id="map-lead">Every combination of retirement age and savings rate, run on the same simulated markets as your plan.</p>
+            </div>
+            <ul class="legend heat-legend" aria-label="Color key">
+              <li><span class="heat-key" data-step="0"></span>under 40%</li>
+              <li><span class="heat-key" data-step="1"></span>40</li>
+              <li><span class="heat-key" data-step="2"></span>55</li>
+              <li><span class="heat-key" data-step="3"></span>70</li>
+              <li><span class="heat-key" data-step="4"></span>80</li>
+              <li><span class="heat-key" data-step="5"></span>85</li>
+              <li><span class="heat-key" data-step="6"></span>92%+</li>
+              <li class="heat-line-key"><span class="key-rule"></span>85% line</li>
+              <li class="heat-you-key"><span class="you-key"></span>Your plan</li>
+            </ul>
+            <div class="odds-wrap">
+              <p class="odds-axis-x" aria-hidden="true">Retire at</p>
+              <div class="table-scroll"><table class="odds" id="odds-table"></table></div>
+            </div>
+            <div class="map-pick" id="map-pick" aria-live="polite"></div>
+            <p class="note">Your spending goal stays at today's level in every square, and every square uses the same 5,000 simulated markets as your plan, so differences come from the two choices alone.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- YEAR BY YEAR (Pro) -->
+      <section class="panel" role="tabpanel" id="panel-years" aria-labelledby="tab-years" tabindex="0" hidden>
+        <div class="pro-lock" id="lock-years"></div>
+        <div class="pro-body" id="pro-years" hidden>
+          <div class="sheet">
+            <div class="block-head years-head">
+              <div>
+                <h2>Year-by-year plan</h2>
+                <p class="sub" id="years-lead">Every year of your plan, in today's dollars.</p>
+              </div>
+              <div class="years-actions">
+                <button class="button" type="button" id="years-download">
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 16.5h12"/></svg>Download spreadsheet (CSV)</button>
+                <span class="years-status" id="years-status" role="status"></span>
+              </div>
+            </div>
+            <div class="table-scroll years-scroll" data-lenis-prevent tabindex="0" aria-label="Year-by-year plan table"><table class="years-table" id="years-table"></table></div>
+            <p class="note">Spending includes Social Security. "Money lasts this far" is the share of simulated markets in which the portfolio hasn't run out by that age.</p>
           </div>
         </div>
       </section>
@@ -713,6 +772,110 @@
   </div>
 </div>
 
+<!-- =============================================================== PRICING -->
+<div class="page" id="page-pricing" data-page="pricing" hidden>
+  <section class="page-head band" aria-labelledby="pricing-title">
+    <svg class="page-rosette"></svg>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="wrap">
+      <h1 id="pricing-title" tabindex="-1">The planner is free. Pro adds two power tools.</h1>
+      <p class="page-lede" data-enter>A flat price instead of a share of your savings. This page is a demo of how Glidepath could pay for itself, and nothing on it takes payment.</p>
+    </div>
+  </section>
+
+  <section class="section pricing-section" aria-label="Plans">
+    <div class="wrap">
+      <p class="demo-banner" role="note"><strong>Demo pricing.</strong> Glidepath doesn't sell anything. Unlocking Pro here asks for no payment details, charges nothing and lasts until you reload or close the tab.</p>
+      <div class="billing segmented" role="group" aria-label="Billing period">
+        <button type="button" data-billing="monthly">Monthly</button>
+        <button type="button" data-billing="yearly">Yearly, save 33%</button>
+      </div>
+      <div class="plans">
+        <article class="plan-card" aria-labelledby="plan-free">
+          <h2 id="plan-free">Free</h2>
+          <p class="plan-price"><span class="amount">$0</span><span class="per">for everyone</span></p>
+          <p class="plan-note">No account, no ads</p>
+          <p class="plan-for">Everything you need to test a retirement plan.</p>
+          <a class="button ghost plan-cta" href="#/planner">Build your plan</a>
+          <ul class="plan-list">
+            <li>Your chance of success, updated as you type</li>
+            <li>The three changes that reach 85%</li>
+            <li>Seven stress tests</li>
+            <li>Three spending rules, side by side</li>
+            <li>Social Security timing, 62 to 70</li>
+            <li>Plan A vs. Plan B</li>
+            <li>A printable action plan</li>
+          </ul>
+        </article>
+        <article class="plan-card pro" aria-labelledby="plan-pro">
+          <div class="plan-top"><h2 id="plan-pro">Pro</h2><span class="plan-tag">Demo</span></div>
+          <p class="plan-price"><span class="amount" data-pro-amount>$48</span><span class="per" data-pro-per>a year</span></p>
+          <p class="plan-note" data-pro-note>$4 a month, billed yearly</p>
+          <p class="plan-for">For people who want to see every option before they decide.</p>
+          <div class="pro-cta-off plan-cta"><button class="button brass" type="button" data-unlock-pro data-then="#/planner/odds-map">Unlock Pro (demo)</button></div>
+          <div class="pro-cta-on plan-cta" hidden>
+            <p class="pro-on-line">Pro is on for this visit.</p>
+            <div class="pro-on-actions"><a class="button" href="#/planner/odds-map">Open the odds map</a><button class="button quiet" type="button" data-pro-off>Turn off Pro</button></div>
+          </div>
+          <ul class="plan-list">
+            <li><strong>Everything in Free</strong></li>
+            <li><strong>Odds map:</strong> your chance of success for every retirement age and savings rate at once, with the 85% line drawn on</li>
+            <li><strong>Year-by-year plan:</strong> every year from now to the end of the plan, with a spreadsheet download</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section price-compare-section" aria-labelledby="compare-cost-title">
+    <div class="wrap price-compare-grid">
+      <div>
+        <h2 id="compare-cost-title">What planning usually costs</h2>
+        <p class="section-lede">Most advice is priced as a share of your savings, so the bill grows as your savings do. A flat price stays the same whatever you have.</p>
+      </div>
+      <div class="cost-bars" id="cost-bars">
+        <div class="cost-row">
+          <div class="cost-label">Traditional advisor<small>1% of $500,000</small></div>
+          <div class="cost-track"><span class="cost-bar" style="--w:1"></span><span class="cost-value">$5,000 a year</span></div>
+        </div>
+        <div class="cost-row">
+          <div class="cost-label">Robo-advisor<small>0.25% of $500,000</small></div>
+          <div class="cost-track"><span class="cost-bar" style="--w:0.25"></span><span class="cost-value">$1,250 a year</span></div>
+        </div>
+        <div class="cost-row is-pro">
+          <div class="cost-label">Glidepath Pro (demo)<small>flat, whatever you've saved</small></div>
+          <div class="cost-track"><span class="cost-bar" style="--w:0.0096"></span><span class="cost-value">$48 a year</span></div>
+        </div>
+        <p class="ledger-sources">Advisory fees only, not fund costs. Kitces Research 2024 (median fee of 1.00% up to $1M); typical digital-advice fee of 0.25%. An advisor also gives personal advice that software can't; the comparison is about the planning math.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section faq" aria-labelledby="pricing-faq-title">
+    <div class="wrap faq-grid">
+      <h2 id="pricing-faq-title">About the demo</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Is this a real subscription?</summary>
+          <div class="faq-body"><p>No. Glidepath is a free, open-source project. The Pro tier shows how it could pay for its upkeep without charging a percentage of anyone's savings. The checkout asks for no payment details and charges nothing.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary>What happens when I unlock the demo?</summary>
+          <div class="faq-body"><p>The odds map and the year-by-year plan open in the planner. Pro stays on until you reload or close the tab. Nothing is saved, in keeping with the rest of the site.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary>Why charge for these two tools and not the rest?</summary>
+          <div class="faq-body"><p>The basic answer, whether your money will last and what would fix it, should be free for anyone. Pro charges for depth: seeing every option at once and taking the numbers into a spreadsheet.</p></div>
+        </details>
+        <details class="faq-item">
+          <summary>Why a flat price?</summary>
+          <div class="faq-body"><p>A percentage fee grows with your savings even when the work doesn't. A flat price costs the same for everyone, which matters most for people with the least saved. At $48 a year, Pro costs what a 1% advisor would charge on $4,800 of savings.</p></div>
+        </details>
+      </div>
+    </div>
+  </section>
+</div>
+
 <!-- =============================================================== ABOUT -->
 <div class="page" id="page-about" data-page="about" hidden>
   <section class="page-head band" aria-labelledby="about-title">
@@ -750,6 +913,18 @@
       </div>
     </div>
   </section>
+  <section class="section about-model" aria-labelledby="about-model-title">
+    <div class="wrap about-grid">
+      <div>
+        <h2 id="about-model-title">How it could pay for itself</h2>
+      </div>
+      <div>
+        <p class="note">Advice is usually priced as a share of what you have: 1% of $500,000 is $5,000 a year, and the bill grows as your savings do. Glidepath's demo Pro tier tests the opposite model. The core answer stays free for everyone, and a flat $48 a year buys the deeper tools, the same as a 1% fee on $4,800 of savings.</p>
+        <p class="note"><a href="#/pricing">See the demo pricing</a>. It never takes payment.</p>
+      </div>
+    </div>
+  </section>
+
   <section class="section about-credits">
     <div class="wrap about-grid">
       <div>
@@ -766,6 +941,33 @@
 </div>
 
 </main>
+
+<dialog class="checkout" id="checkout" aria-labelledby="checkout-title">
+  <div class="checkout-form">
+    <h2 id="checkout-title">Unlock Glidepath Pro</h2>
+    <p class="checkout-lead" id="checkout-feature">Pro adds two planning tools to the free planner.</p>
+    <p class="demo-banner small" role="note"><strong>This is a demo checkout.</strong> Glidepath never asks for card details and nothing is charged. Pro stays on until you reload or close this tab.</p>
+    <fieldset class="checkout-plans">
+      <legend>Billing</legend>
+      <label class="plan-radio"><input type="radio" name="billing" value="yearly"><span class="pr-name">Yearly</span><span class="pr-price">$48 a year</span><span class="pr-save">Save 33%</span></label>
+      <label class="plan-radio"><input type="radio" name="billing" value="monthly"><span class="pr-name">Monthly</span><span class="pr-price">$6 a month</span></label>
+    </fieldset>
+    <ul class="checkout-list">
+      <li>Odds map: every retirement age and savings rate at once</li>
+      <li>Year-by-year plan with a spreadsheet download</li>
+    </ul>
+    <div class="checkout-actions">
+      <button class="button brass" id="checkout-confirm" type="button">Unlock Pro (demo)</button>
+      <button class="button quiet" id="checkout-cancel" type="button">Not now</button>
+    </div>
+  </div>
+  <div class="checkout-done" hidden>
+    <div class="checkout-stamp" aria-hidden="true"><svg class="checkout-seal" id="checkout-seal"></svg><span>Pro</span></div>
+    <h2>Pro is on</h2>
+    <p id="checkout-done-plan"></p>
+    <button class="button" id="checkout-continue" type="button">Continue</button>
+  </div>
+</dialog>
 
 <footer class="site-footer band">
   <div class="grain" aria-hidden="true"></div>
@@ -784,11 +986,13 @@
       <a href="#/planner/spending">Spending rules</a>
       <a href="#/planner/social-security">Social Security</a>
       <a href="#/planner/compare">Compare plans</a>
+      <a href="#/planner/odds-map">Odds map (Pro)</a>
     </nav>
     <nav aria-label="Learn" class="footer-col">
       <h2>Learn</h2>
       <a href="#/insights">Insights</a>
       <a href="#/method">How it works</a>
+      <a href="#/pricing">Pricing</a>
       <a href="#/about">About</a>
     </nav>
     <nav aria-label="Project" class="footer-col">

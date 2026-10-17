@@ -2,6 +2,8 @@
 
 - **No data leaves the browser.** The web app computes everything locally. It has no backend, no
   analytics, no cookies and no local storage, and its Content Security Policy blocks all network requests.
+- **No payments.** The Pro tier is a demo of a business model. Its checkout asks for no card or account
+  details, sends nothing anywhere and charges nothing; Pro is held in memory for the visit only.
 - **No secrets.** The project needs no API keys, tokens or credentials, and none are stored in the repository.
 - **Everything is bundled.** The page loads nothing from other sites. The third-party JavaScript it uses
   (GSAP, Lenis and ports of React Bits components) and its fonts are checked into `web/vendor/` and

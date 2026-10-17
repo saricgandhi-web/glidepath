@@ -2,20 +2,22 @@
 // scrolling and the hero's engraved background.
 import { $, RB, ST, animate, gsap, motionOK, redrawCharts, runtime, scrollToY } from "./ui.js";
 import { planner, viewFromSlug } from "./planner.js";
-import { home, homeIntro } from "./home.js";
+import { home, homeIntro, initFaq } from "./home.js";
 import { about, initPages, insights, method } from "./pages.js";
+import { initPro, pricing } from "./pro.js";
 
-const PAGES = { home, planner, insights, method, about };
+const PAGES = { home, planner, insights, method, pricing, about };
 const TITLES = {
   home: "Glidepath: a free Monte Carlo retirement planner",
   planner: "Your plan | Glidepath",
   insights: "Insights | Glidepath",
   method: "How it works | Glidepath",
+  pricing: "Pricing | Glidepath",
   about: "About | Glidepath",
 };
 
 // ---------- routes ----------
-// "#/", "#/planner", "#/planner/stress", "#/insights", "#/method", "#/about".
+// "#/", "#/planner", "#/planner/stress", "#/insights", "#/method", "#/pricing", "#/about".
 // Single-word hashes from the earlier one-page version still work ("#stress", "#ss", ...).
 const LEGACY = { plan: ["planner", "overview"], stress: ["planner", "stress"], spending: ["planner", "spending"], ss: ["planner", "ss"],
   compare: ["planner", "compare"], assumptions: ["planner", "assumptions"], about: ["about"] };
@@ -164,6 +166,8 @@ window.addEventListener("resize", () => {
 
 // ---------- boot ----------
 initPages();
+initPro();
+initFaq();
 document.documentElement.classList.remove("intro");
 const start = parseRoute(location.hash);
 route({ initial: true });
