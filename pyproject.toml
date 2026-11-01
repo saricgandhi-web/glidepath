@@ -10,7 +10,7 @@ readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "The Glidepath authors" }]
 requires-python = ">=3.10"
-dependencies = ["numpy>=1.24"]
+dependencies = ["numpy>=2.2.6"]
 keywords = ["retirement", "monte-carlo", "financial-planning", "wealth-management", "social-security"]
 classifiers = [
     "Programming Language :: Python :: 3",
